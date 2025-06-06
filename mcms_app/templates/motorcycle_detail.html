@@ -1,0 +1,762 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Motorcycle: {{ motorcycle.brand }} {{ motorcycle.name }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {# Modern Header #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon">
+                <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M16.747 10.2391C14.0087 11.0043 12 13.5176 12 16.5C12 12.9101 9.08985 10 5.5 10H2M5.5 16.5H5.51M18.5 16.5L15 4H13M15.5625 6H19M19 5V7M15.5 6L9 11M22 16.5C22 18.433 20.433 20 18.5 20C16.567 20 15 18.433 15 16.5C15 14.567 16.567 13 18.5 13C20.433 13 22 14.567 22 16.5ZM9 16.5C9 18.433 7.433 20 5.5 20C3.567 20 2 18.433 2 16.5C2 14.567 3.567 13 5.5 13C7.433 13 9 14.567 9 16.5ZM6 16.5C6 16.7761 5.77614 17 5.5 17C5.22386 17 5 16.7761 5 16.5C5 16.2239 5.22386 16 5.5 16C5.77614 16 6 16.2239 6 16.5Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">Motorcycle Details</h1>
+                <p class="page-subtitle">{{ motorcycle.brand }} {{ motorcycle.name }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'motorcycle_list' %}" class="btn-secondary-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-container">
+        {# Main Information Card #}
+        <div class="main-content">
+            <div class="detail-card">
+                <div class="card-header">
+                    <div class="card-header-content pb-3">
+                        <h2 class="card-title">Model Information</h2>
+                        <div class="status-badge 
+                            {% if motorcycle.status == motorcycle.ACTIVE %}status-active
+                            {% elif motorcycle.status == motorcycle.DISCONTINUED %}status-discontinued
+                            {% else %}status-inactive{% endif %}">
+                            {{ motorcycle.get_status_display }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Brand</span>
+                                <span class="detail-value">{{ motorcycle.brand }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Model Name</span>
+                                <span class="detail-value">{{ motorcycle.name }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Date Added</span>
+                                <span class="detail-value">{{ motorcycle.created_at|date:"M d, Y"|default:"N/A" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Last Updated</span>
+                                <span class="detail-value">{{ motorcycle.updated_at|date:"M d, Y"|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Inventory Information #}
+            <div class="detail-card">
+                <div class="card-header pb-3">
+                    <h2 class="card-title">Inventory Information</h2>
+                </div>
+                
+                <div class="card-body">
+                    {% if inventory %}
+                        <div class="inventory-summary">
+                            <div class="inventory-stat">
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                                        <line x1="12" y1="22.08" x2="12" y2="12"/>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <div class="stat-value">{{ inventory.current_quantity|intcomma }}</div>
+                                    <div class="stat-label">Units in Stock</div>
+                                </div>
+                            </div>
+                            <div class="inventory-meta">
+                                <span class="meta-label">Last Updated:</span>
+                                <span class="meta-value">{{ inventory.last_updated|date:"M d, Y \a\\t H:i" }}</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 8v8"/>
+                                    <path d="M8 12h8"/>
+                                </svg>
+                            </div>
+                            <h3 class="empty-title">No Inventory Record</h3>
+                            <p class="empty-description">This model needs to be stocked via a supplier delivery or has never been stocked.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Action Buttons #}
+            <div class="action-bar">
+                {% if motorcycle.status == motorcycle.ACTIVE %}
+                    <a href="{% url 'motorcycle_edit' pk=motorcycle.pk %}" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        Edit Model
+                    </a>
+                    
+                    {% if can_be_discontinued %}
+                        <a href="{% url 'motorcycle_discontinue_confirm' pk=motorcycle.pk %}" class="btn btn-warning">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                            Discontinue
+                        </a>
+                    {% else %}
+                        <button class="btn btn-warning" disabled title="{{ discontinuation_warning|default:'Cannot be discontinued due to active dependencies.' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="8" y1="12" x2="16" y2="12"/>
+                            </svg>
+                            Discontinue
+                        </button>
+                    {% endif %}
+
+                    {% if can_be_hard_deleted %}
+                        <a href="{% url 'motorcycle_delete_confirm' pk=motorcycle.pk %}" class="btn btn-danger">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                            Delete Permanently
+                        </a>
+                    {% else %}
+                        <button class="btn btn-danger" disabled title="{{ hard_delete_warning|default:'Cannot delete: Model has dependencies or stock.' }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                            Delete Permanently
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <button class="btn btn-secondary" disabled>Edit Model</button>
+                    <button class="btn btn-warning" disabled>Discontinue</button>
+                    <button class="btn btn-danger" disabled>Delete Permanently</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Right Sidebar - Recent Activities #}
+    <div class="right-sidebar">
+        <div class="sidebar-content">
+            <div class="detail-card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Sales Activity</h2>
+                </div>
+                
+                <div class="card-body">
+                    {% if recent_sales %}
+                        <div class="activity-feed">
+                            {% for sale in recent_sales %}
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-title">
+                                            <a href="{{ sale.get_absolute_url }}">{{ sale.sale_reference }}</a>
+                                        </div>
+                                        <div class="activity-description">Sold to {{ sale.customer.name }}</div>
+                                        <div class="activity-meta">
+                                            <span class="activity-date">{{ sale.sale_date|date:"M d, Y" }}</span>
+                                            <span class="activity-amount">₦{{ sale.final_price|floatformat:0|intcomma }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state-small">
+                            <div class="empty-icon-small">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M9 11H5a2 2 0 0 0-2 2v3c0 1.1.9 2 2 2h4m-4-4l12-8m0 12V9a2 2 0 0 0-2-2H9"/>
+                                </svg>
+                            </div>
+                            <p class="empty-text">No recent sales recorded for this model.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* CSS Variables */
+:root {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+}
+
+/* Layout */
+.content {
+    max-width: calc(100% - 320px);
+    margin: 0;
+    padding: 2rem 1rem;
+    padding-right: 2rem;
+}
+
+.page-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: var(--gray-600);
+    margin: 0;
+    font-weight: 500;
+}
+
+.detail-container {
+    width: 100%;
+    max-width: none;
+}
+
+.right-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 320px;
+    height: 100vh;
+    background: white;
+    border-left: 1px solid var(--gray-200);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 2rem 1rem;
+}
+
+.sidebar-content {
+    padding-top: 1rem;
+}
+
+/* Cards */
+.detail-card {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.detail-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    padding: 1.5rem 1.5rem 0;
+    border-bottom: none;
+}
+
+.card-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+    padding-top: 1rem;
+}
+
+/* Status Badge */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.status-active {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-discontinued {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-inactive {
+    background-color: var(--gray-100);
+    color: var(--gray-700);
+}
+
+/* Detail Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+}
+
+.detail-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.detail-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.detail-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+/* Inventory Summary */
+.inventory-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.inventory-stat {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--gray-50), white);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray-200);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--primary-color);
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-top: 0.25rem;
+}
+
+.inventory-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.meta-label {
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.meta-value {
+    color: var(--gray-700);
+    font-weight: 600;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-icon {
+    margin: 0 auto 1rem;
+    color: var(--gray-400);
+}
+
+.empty-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin: 0 0 0.5rem;
+}
+
+.empty-description {
+    color: var(--gray-500);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.empty-state-small {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.empty-icon-small {
+    margin: 0 auto 1rem;
+    color: var(--gray-400);
+}
+
+.empty-text {
+    color: var(--gray-500);
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* Activity Feed */
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--success-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title a {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.activity-title a:hover {
+    text-decoration: underline;
+}
+
+.activity-description {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin-top: 0.25rem;
+}
+
+.activity-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+
+.activity-date {
+    color: var(--gray-500);
+}
+
+.activity-amount {
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+/* Action Bar */
+.action-bar {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--gray-200);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-warning {
+    background: var(--warning-color);
+    color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: #d97706;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--gray-300);
+}
+
+.btn-secondary-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    background: white;
+    color: var(--gray-700);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary-outline:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .right-sidebar {
+        display: none;
+    }
+    
+    .content {
+        max-width: 100%;
+        padding-right: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem;
+    }
+    
+    .page-header-modern {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .header-content {
+        justify-content: center;
+    }
+    
+    .header-actions {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-bar {
+        flex-direction: column;
+    }
+    
+    .btn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+    }
+    
+    .header-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .inventory-stat {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

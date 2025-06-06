@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Inventory: {{ inventory.motorcycle_model.brand }} {{ inventory.motorcycle_model.name }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {# Modern Header #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon" style="background: linear-gradient(135deg, var(--info-color), #1e40af);"> {# Blue variant for Inventory/Stock #}
+                {# Inventory/Stock Icon - Replace if you have a better one #}
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                    <line x1="12" y1="22.08" x2="3.27" y2="16.96"/>
+                    <line x1="12" y1="22.08" x2="20.73" y2="16.96"/>
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">Inventory Details</h1>
+                <p class="page-subtitle">{{ inventory.motorcycle_model.brand }} {{ inventory.motorcycle_model.name }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'inventory_list' %}" class="btn-secondary-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-container row justify-content-center">
+        <div class="main-content col-lg-10 col-md-12"> {# Using a wider single column layout #}
+            {# Motorcycle Model & Stock Information Card #}
+            <div class="detail-card">
+                <div class="card-header pb-3">
+                    <h2 class="card-title">Stock Information</h2>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Motorcycle Brand</span>
+                                <span class="detail-value">{{ inventory.motorcycle_model.brand }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Model Name</span>
+                                <span class="detail-value">
+                                    <a href="{{ inventory.motorcycle_model.get_absolute_url }}">{{ inventory.motorcycle_model.name }}</a>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Current Stock Quantity</span>
+                                <span class="detail-value {% if inventory.current_quantity <= 0 %}text-danger-dark{% elif inventory.current_quantity < 5 %}text-warning-dark{% else %}text-success-dark{% endif %}" style="font-size: 1.2em; font-weight: 700;">
+                                    {{ inventory.current_quantity|intcomma }} units
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Stock Last Updated</span>
+                                <span class="detail-value text-muted"><small>{{ inventory.last_updated|date:"M d, Y H:i" }}</small></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Inventory Transaction History Card #}
+            <div class="detail-card">
+                <div class="card-header pb-3">
+                    <h2 class="card-title">Inventory Transaction History</h2>
+                </div>
+                <div class="card-body">
+                    {% if transactions %} {# 'transactions' should be the page_obj for transaction list #}
+                        <div class="table-responsive">
+                            <table class="table table-hover modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Type</th>
+                                        <th class="text-center">Quantity Change</th>
+                                        <th>Reference</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %} {# Iterate through items on current page #}
+                                    <tr>
+                                        <td>{{ transaction.transaction_date|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <span class="status-badge 
+                                                {% if transaction.transaction_type == 'SUPPLIER_DELIVERY' %}status-tx-in
+                                                {% elif transaction.transaction_type == 'SALE_REVERSAL' %}status-tx-in-reversal
+                                                {% elif transaction.transaction_type == 'SALE' %}status-tx-out
+                                                {% elif transaction.transaction_type == 'DELIVERY_REVERSAL' %}status-tx-out-reversal
+                                                {% else %}status-inactive{% endif %}">
+                                                {{ transaction.get_transaction_type_display }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center {% if transaction.quantity > 0 %}text-success-dark{% elif transaction.quantity < 0 %}text-danger-dark{% endif %}" style="font-weight: bold;">
+                                            {% if transaction.quantity > 0 %}+{% endif %}{{ transaction.quantity|intcomma }}
+                                        </td>
+                                        <td>
+                                            {# Add logic to link to source reference if possible #}
+                                            <small class="text-muted">{{ transaction.reference_model }} #{{ transaction.reference_id }}</small>
+                                        </td>
+                                        <td>{{ transaction.remarks|default_if_none:"N/A"|truncatewords:15 }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        {# Include the pagination partial for transactions #}
+                        {% if transactions.has_other_pages %}
+                            {% include "mcms_app/partials/pagination.html" with page_obj=transactions request_get=request.GET %}
+                        {% endif %}
+
+                    {% else %}
+                        <div class="empty-state-small">
+                            <p class="empty-text">No transaction history found for this motorcycle model.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {# No specific action buttons for editing inventory directly on this page #}
+        </div>
+    </div>
+</div>
+
+<style>
+/* --- Paste the FULL CSS from previous detail page redesigns here --- */
+/* Or ensure it's in your global stylesheet linked in base.html */
+
+/* CSS Variables (Example, ensure these match your established theme) */
+:root {
+    --primary-color: #f97316; /* Orange */
+    --primary-hover: #ea580c;
+    --success-color: #10b981; /* Green */
+    --warning-color: #f59e0b; /* Amber */
+    --danger-color: #ef4444;  /* Red */
+    --info-color: #3b82f6;    /* Blue */
+    --purple-color: #8b5cf6;  /* Purple for Loans */
+    --purple-hover: #7c3aed;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db;
+    --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
+    --gray-800: #1f2937; --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+}
+
+/* Layout */
+.content { max-width: 100%; margin: 0 auto; padding: 2rem 1rem; }
+.page-header-modern { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1.5rem 0; border-bottom: 1px solid var(--gray-200); }
+.header-content { display: flex; align-items: center; gap: 1rem; }
+.header-icon { width: 56px; height: 56px; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; color: white; box-shadow: var(--shadow-md); }
+.header-text { display: flex; flex-direction: column; gap: 0.25rem; }
+.page-title { font-size: 1.875rem; font-weight: 700; color: var(--gray-900); margin: 0; line-height: 1.2; }
+.page-subtitle { font-size: 1.125rem; color: var(--gray-600); margin: 0; font-weight: 500; }
+.header-actions .btn-secondary-outline { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); background: white; color: var(--gray-700); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease; }
+.header-actions .btn-secondary-outline:hover { background: var(--gray-50); border-color: var(--gray-400); }
+
+/* Cards */
+.detail-card { background: white; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); margin-bottom: 1.5rem; overflow: hidden; }
+.detail-card:hover { box-shadow: var(--shadow-md); }
+.card-header { padding: 1.5rem 1.5rem 0; border-bottom: none; }
+/* .card-header-content { display: flex; justify-content: space-between; align-items: center; } */ /* Already there */
+.card-title { font-size: 1.25rem; font-weight: 600; color: var(--gray-900); margin: 0; }
+.card-body { padding: 1.5rem; padding-top: 1rem; }
+
+/* Status Badges for Transactions */
+.status-badge { padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.025em; display:inline-block; line-height:1; }
+.status-tx-in { background-color: #dcfce7; color: #166534; } /* Green - Supplier Delivery */
+.status-tx-in-reversal { background-color: #ccfbf1; color: #0d9488; } /* Teal - Sale Reversal (stock in) */
+.status-tx-out { background-color: #fee2e2; color: #991b1b; } /* Red - Sale */
+.status-tx-out-reversal { background-color: #ffedd5; color: #c2410c; } /* Orange - Delivery Reversal (stock out correction) */
+.status-inactive { background-color: var(--gray-100); color: var(--gray-700); }
+
+
+/* Detail Grid */
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem 2rem; }
+.detail-group { display: flex; flex-direction: column; gap: 1rem; }
+.detail-item { display: flex; flex-direction: column; gap: 0.35rem; }
+.detail-label { font-size: 0.8rem; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.025em; }
+.detail-value { font-size: 0.95rem; font-weight: 600; color: var(--gray-800); }
+.detail-value a { color: var(--primary-color); text-decoration: none; }
+.detail-value a:hover { text-decoration: underline; }
+.text-success-dark { color: var(--success-color); }
+.text-warning-dark { color: var(--warning-color); }
+.text-danger-dark { color: var(--danger-color); }
+
+
+/* Table Styling */
+.modern-table { width: 100%; margin-bottom: 1rem; color: var(--gray-700); border-collapse: collapse; }
+.modern-table th, .modern-table td { padding: 0.75rem 1rem; vertical-align: middle; border-top: 1px solid var(--gray-200); font-size: 0.875rem; }
+.modern-table thead th { vertical-align: bottom; border-bottom: 2px solid var(--gray-300); font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.05em; background-color: var(--gray-50); }
+.modern-table tbody tr:hover { background-color: var(--gray-50); }
+.modern-table .text-end { text-align: right !important; }
+.modern-table .text-center { text-align: center !important; }
+
+/* Empty State Small */
+.empty-state-small { text-align: center; padding: 1rem; }
+.empty-text { color: var(--gray-500); font-size: 0.875rem; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content { padding: 1rem; }
+    .page-header-modern { flex-direction: column; gap: 1rem; align-items: stretch; }
+    .header-content { justify-content: center; }
+    .header-actions { display: flex; justify-content: center; }
+    .detail-grid { grid-template-columns: 1fr; gap: 1rem; }
+}
+</style>
+{% endblock %}

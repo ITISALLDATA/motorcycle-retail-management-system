@@ -1,0 +1,1315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">{{ title }}</h1>
+                <p class="page-subtitle">
+                    {% if payment %}Update existing payment details{% else %}Create a new payment record{% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'payment_list' %}" class="btn-secondary-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form method="post" class="modern-form" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-card">
+                <div class="card-header">
+                    <h3 class="card-title">Payment Information</h3>
+                    <p class="card-subtitle">Enter the basic payment details</p>
+                </div>
+                <div class="card-content">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-error" style="margin-bottom: 1rem;">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    <div class="form-grid">
+                        <div class="form-field {% if form.supplier.errors %}has-error{% endif %}">
+                            <label class="form-label" for="{{ form.supplier.id_for_label }}">Supplier {% if form.supplier.field.required %}*{% endif %}</label>
+                            <div class="input-wrapper">
+                                {{ form.supplier }}
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.supplier.errors %}
+                                <div class="error-message">{% for error in form.supplier.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field {% if form.amount_paid.errors %}has-error{% endif %}">
+                            <label class="form-label" for="{{ form.amount_paid.id_for_label }}">Amount Paid {% if form.amount_paid.field.required %}*{% endif %}</label>
+                            <div class="input-wrapper">
+                                {{ form.amount_paid }}
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M7.333 11H4v2h3.333V22h3.334V13h9.333v-2H10.667V4h-3.334zM10.667 4v7h-3.334V4z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.amount_paid.errors %}
+                                <div class="error-message">{% for error in form.amount_paid.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field {% if form.payment_date.errors %}has-error{% endif %}">
+                            <label class="form-label" for="{{ form.payment_date.id_for_label }}">Payment Date {% if form.payment_date.field.required %}*{% endif %}</label>
+                            <div class="input-wrapper">
+                                {{ form.payment_date }}
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.payment_date.errors %}
+                                <div class="error-message">{% for error in form.payment_date.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field {% if form.payment_method.errors %}has-error{% endif %}">
+                            <label class="form-label" for="{{ form.payment_method.id_for_label }}">Payment Method {% if form.payment_method.field.required %}*{% endif %}</label>
+                            <div class="input-wrapper">
+                                {{ form.payment_method }}
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                        <line x1="1" y1="10" x2="23" y2="10"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.payment_method.errors %}
+                                <div class="error-message">{% for error in form.payment_method.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field form-field-full {% if form.remarks.errors %}has-error{% endif %}">
+                            <label class="form-label" for="{{ form.remarks.id_for_label }}">Remarks</label>
+                            <div class="textarea-wrapper">
+                                {{ form.remarks }}
+                            </div>
+                            {% if form.remarks.errors %}
+                                <div class="error-message">{% for error in form.remarks.errors %}{{ error }}{% endfor %}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <h3 class="card-title">Payment Items</h3>
+                        <p class="card-subtitle">Add items covered by this payment</p>
+                    </div>
+                    <button type="button" class="btn-primary" id="add-item-button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Add Item
+                    </button>
+                </div>
+                <div class="card-content">
+                    {{ formset.management_form }}
+                    {% if formset.non_form_errors %}
+                        <div class="alert alert-error" style="margin-bottom: 1rem;">
+                            {{ formset.non_form_errors }}
+                        </div>
+                    {% endif %}
+
+                    <template id="{{ formset.prefix }}-empty-form-template">
+                        <div class="payment-item-row"> {# Cloned by JS for new items #}
+                            <div class="hidden-fields">
+                                {{ formset.empty_form.id }}
+                                {{ formset.empty_form.DELETE }}
+                            </div>
+                            <div class="item-content">
+                                {# Placeholder for non-field errors - JS will ensure template is clean #}
+                                {# Server will render errors for actual forms based on the loop below #}
+                                <div class="item-header">
+                                    <div class="item-number">
+                                        <span class="item-badge">Item #<span class="item-counter">__#</span></span> {# JS will update __# #}
+                                    </div>
+                                    <button type="button" class="btn-remove-item" title="Remove this item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"/>
+                                            <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                            <line x1="14" y1="11" x2="14" y2="17"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="item-fields">
+                                    <div class="form-field {% if formset.empty_form.motorcycle_model.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ formset.empty_form.motorcycle_model.id_for_label }}">Motorcycle Model {% if formset.empty_form.motorcycle_model.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ formset.empty_form.motorcycle_model }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="2"/><path d="M12 1v6m0 6v6"/><path d="m21 12-6 0m-6 0-6 0"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="error-message">{{ formset.empty_form.motorcycle_model.errors.0|default:"" }}</div>
+                                    </div>
+
+                                    <div class="form-field {% if formset.empty_form.expected_quantity.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ formset.empty_form.expected_quantity.id_for_label }}">Expected Quantity {% if formset.empty_form.expected_quantity.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ formset.empty_form.expected_quantity }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="error-message">{{ formset.empty_form.expected_quantity.errors.0|default:"" }}</div>
+                                    </div>
+
+                                    <div class="form-field {% if formset.empty_form.unit_price.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ formset.empty_form.unit_price.id_for_label }}">Unit Price {% if formset.empty_form.unit_price.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ formset.empty_form.unit_price }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M7.333 11H4v2h3.333V22h3.334V13h9.333v-2H10.667V4h-3.334zM10.667 4v7h-3.334V4z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="error-message">{{ formset.empty_form.unit_price.errors.0|default:"" }}</div>
+                                    </div>
+
+                                    <div class="form-field {% if formset.empty_form.remarks.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ formset.empty_form.remarks.id_for_label }}">Remarks {% if formset.empty_form.remarks.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ formset.empty_form.remarks }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        <div class="error-message">{{ formset.empty_form.remarks.errors.0|default:"" }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <div id="payment-items-formset" class="items-container">
+                        {# Existing forms rendered by Django server-side #}
+                        {% for item_form in formset %}
+                        <div class="payment-item-row {% if item_form.non_field_errors or item_form.errors %}has-item-errors{% endif %}" data-formset-prefix="{{ item_form.prefix }}">
+                            <div class="hidden-fields">
+                                {% if item_form.instance.pk %}{{ item_form.id }}{% endif %}
+                                {{ item_form.DELETE }}
+                            </div>
+                            
+                            <div class="item-content">
+                                {% if item_form.non_field_errors %}
+                                <div class="alert alert-error item-form-non-field-errors" style="margin-bottom: 1rem; border-radius: var(--border-radius-sm);">
+                                    {% for error in item_form.non_field_errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            
+                                <div class="item-header">
+                                    <div class="item-number">
+                                        <span class="item-badge">Item #<span class="item-counter">{{ forloop.counter }}</span></span>
+                                    </div>
+                                    <button type="button" class="btn-remove-item" title="Remove this item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"/>
+                                            <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                            <line x1="14" y1="11" x2="14" y2="17"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="item-fields">
+                                    <div class="form-field {% if item_form.motorcycle_model.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ item_form.motorcycle_model.id_for_label }}">Motorcycle Model {% if item_form.motorcycle_model.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ item_form.motorcycle_model }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="2"/><path d="M12 1v6m0 6v6"/><path d="m21 12-6 0m-6 0-6 0"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {% if item_form.motorcycle_model.errors %}
+                                            <div class="error-message">{% for error in item_form.motorcycle_model.errors %}{{ error }}{% endfor %}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-field {% if item_form.expected_quantity.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ item_form.expected_quantity.id_for_label }}">Expected Quantity {% if item_form.expected_quantity.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ item_form.expected_quantity }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {% if item_form.expected_quantity.errors %}
+                                            <div class="error-message">{% for error in item_form.expected_quantity.errors %}{{ error }}{% endfor %}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-field {% if item_form.unit_price.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ item_form.unit_price.id_for_label }}">Unit Price {% if item_form.unit_price.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ item_form.unit_price }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M7.333 11H4v2h3.333V22h3.334V13h9.333v-2H10.667V4h-3.334zM10.667 4v7h-3.334V4z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {% if item_form.unit_price.errors %}
+                                            <div class="error-message">{% for error in item_form.unit_price.errors %}{{ error }}{% endfor %}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-field {% if item_form.remarks.errors %}has-error{% endif %}">
+                                        <label class="form-label" for="{{ item_form.remarks.id_for_label }}">Remarks {% if item_form.remarks.field.required %}*{% endif %}</label>
+                                        <div class="input-wrapper">
+                                            {{ item_form.remarks }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {% if item_form.remarks.errors %}
+                                            <div class="error-message">{% for error in item_form.remarks.errors %}{{ error }}{% endfor %}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                            </svg>
+                        </div>
+                        <h4>No payment items added</h4>
+                        <p>Click "Add Item" to start adding items to this payment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            {% if formset.non_form_errors %}
+                <div class="alert alert-error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    {{ formset.non_field_errors }}
+                </div>
+            {% endif %} -->
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary btn-large"
+                        {% if edit_mode and payment and not payment.is_editable %} {# Added 'payment' context check #}
+                            disabled title="This payment is {{ payment.get_status_display }} or has deliveries and cannot be edited."
+                        {% endif %}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                    {% if payment %}Update Payment{% else %}Create Payment{% endif %}
+                </button>
+                <a href="{% if payment %}{% url 'payment_detail' pk=payment.pk %}{% else %}{% url 'payment_list' %}{% endif %}" class="btn-secondary btn-large">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<style>
+:root {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary-color: #6b7280;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --transition: all 0.2s ease-in-out;
+}
+
+.content {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+}
+
+/* Modern Header */
+.page-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--gray-600);
+    margin: 0.25rem 0 0 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Form Container */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.modern-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Form Cards */
+.form-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin: 0.25rem 0 0 0;
+}
+
+.card-content {
+    padding: 2rem;
+}
+
+/* Form Grid */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-field-full {
+    grid-column: 1 / -1;
+}
+
+/* Form Fields */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin: 0;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input,
+.input-wrapper select {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    color: var(--gray-900);
+    background: white;
+    transition: var(--transition);
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.input-icon {
+    position: absolute;
+    left: 0.75rem;
+    color: var(--gray-400);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.textarea-wrapper textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    color: var(--gray-900);
+    background: white;
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.textarea-wrapper textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+/* Error Messages */
+.error-message {
+    font-size: 0.75rem;
+    color: var(--error-color);
+    margin-top: 0.25rem;
+}
+
+ /* Payment Items */
+.items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.payment-item-row {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-sm);
+    background: var(--gray-50);
+    transition: var(--transition);
+}
+.payment-item-row.has-item-errors { /* Style for rows with errors */
+    border-left: 3px solid var(--error-color);
+}
+
+
+.payment-item-row:hover {
+    border-color: var(--gray-300);
+    box-shadow: var(--shadow-sm);
+}
+
+.hidden-fields {
+    display: none;
+}
+
+.item-content {
+    padding: 1.5rem; /* Default padding */
+}
+.payment-item-row.has-item-errors .item-content {
+    padding-top: 1rem; /* Reduce top padding if errors are shown */
+}
+
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.item-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.btn-remove-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--error-color);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-remove-item:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+.item-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray-500);
+}
+
+.empty-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Buttons */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background: var(--gray-200);
+    border-color: var(--gray-400);
+}
+
+.btn-secondary-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: var(--gray-600);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-secondary-outline:hover {
+    background: var(--gray-50);
+    color: var(--gray-900);
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+}
+
+/* Alerts */
+.alert {
+    display: flex;
+    flex-direction: column; /* Changed for multi-line errors */
+    align-items: flex-start; /* Align text to start */
+    gap: 0.5rem; /* Reduced gap for multi-line errors */
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+.alert.item-form-non-field-errors div { /* Style for each error line */
+    width: 100%;
+}
+
+
+.alert-error {
+    background: #fef2f2;
+    color: var(--error-color);
+    border: 1px solid #fecaca;
+}
+
+.form-field .error-message {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--error-color);
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.form-field.has-error .input-wrapper input,
+.form-field.has-error .input-wrapper select,
+.form-field.has-error .textarea-wrapper textarea {
+    border-color: var(--error-color);
+    box-shadow: 0 0 0 3px rgb(239 68 68 / 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem 0.5rem;
+    }
+    
+    .page-header-modern {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+        padding: 1rem;
+    }
+    
+    .card-content {
+        padding: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .item-fields {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .btn-large {
+        justify-content: center;
+    }
+}
+
+/* Animation for new items */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.payment-item-row.new-item {
+    animation: slideIn 0.3s ease-out;
+}
+</style>
+
+<script>
+    const FORMSET_PREFIX = "{{ formset.prefix }}"; 
+
+    if (!RegExp.escape) {
+        RegExp.escape = function(string) {
+            return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        };
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const addItemButton = document.getElementById('add-item-button');
+        const formsetContainer = document.getElementById('payment-items-formset');
+        const emptyState = document.getElementById('empty-state');
+        const totalFormsInput = document.querySelector(`input[name="${FORMSET_PREFIX}-TOTAL_FORMS"]`);
+        const form = document.querySelector('.modern-form'); 
+
+        let emptyFormTemplate = null; 
+
+        function init() {
+            if (!formsetContainer) {
+                console.error("Formset container ('payment-items-formset') not found. Formset JS cannot initialize.");
+                if (addItemButton) addItemButton.style.display = 'none';
+                return;
+            }
+            if (!totalFormsInput) {
+                console.error(`TOTAL_FORMS input ('input[name="${FORMSET_PREFIX}-TOTAL_FORMS"]') not found. Formset JS cannot initialize reliably.`);
+                if (addItemButton) addItemButton.style.display = 'none';
+                return;
+            }
+
+            const djangoEmptyFormTemplateHolder = document.getElementById(`${FORMSET_PREFIX}-empty-form-template`);
+            if (djangoEmptyFormTemplateHolder && djangoEmptyFormTemplateHolder.content) {
+                emptyFormTemplate = djangoEmptyFormTemplateHolder.content.firstElementChild.cloneNode(true);
+                clearFormTemplate(emptyFormTemplate);
+            } else {
+                 // Fallback: if template tag is missing, try to clone from an existing form if any.
+                 // This is less ideal as it might clone values if not careful.
+                const existingRows = formsetContainer.querySelectorAll('.payment-item-row');
+                if (existingRows.length > 0) {
+                    console.warn("Using first existing form row as template. Ensure it's clean or provide a <template> tag.");
+                    emptyFormTemplate = existingRows[0].cloneNode(true);
+                    clearFormTemplate(emptyFormTemplate); // Crucial to clean it
+                } else {
+                    console.error("No Django 'empty_form' template (e.g., <template id=\"" + FORMSET_PREFIX + "-empty-form-template\">) found, and no existing rows to clone. 'Add Item' will not work.");
+                    if (addItemButton) addItemButton.style.display = 'none'; // Disable add button
+                    return;
+                }
+            }
+
+            updateAllFormIndices(); 
+            checkEmptyState();
+            attachAllRemoveListeners(); 
+
+            if (addItemButton) {
+                addItemButton.addEventListener('click', addNewItem);
+            } else {
+                console.warn("'Add Item' button (id='add-item-button') not found.");
+            }
+        }
+
+        function clearFormTemplate(templateNode) {
+            if (!templateNode) return;
+            templateNode.querySelectorAll('input, select, textarea').forEach(input => {
+                const inputName = input.getAttribute('name');
+                if (input.type === 'hidden' && inputName && inputName.endsWith('-id')) {
+                    input.value = ''; 
+                } else if (input.type === 'checkbox') { // Uncheck all checkboxes in template
+                    input.checked = false;
+                } else if (inputName && !inputName.includes('TOTAL_FORMS') && !inputName.includes('INITIAL_FORMS') && !inputName.includes('MAX_NUM_FORMS')) {
+                    input.value = '';
+                }
+            });
+            // Remove error messages and styling from the template
+            templateNode.querySelectorAll('.error-message, .item-form-non-field-errors').forEach(el => el.innerHTML = ''); // Clear content
+            templateNode.querySelectorAll('.item-form-non-field-errors').forEach(el => el.style.display = 'none'); // Hide
+            templateNode.querySelectorAll('.form-field.has-error').forEach(el => el.classList.remove('has-error'));
+            templateNode.classList.remove('has-item-errors');
+
+            const itemCounterBadge = templateNode.querySelector('.item-counter');
+            if (itemCounterBadge) itemCounterBadge.textContent = '__#'; 
+        }
+
+        function updateElementAttributes(element, oldIndexPattern, newIndexStr) {
+            const attributesToUpdate = ['id', 'name', 'for'];
+            attributesToUpdate.forEach(attrName => {
+                if (element.hasAttribute(attrName)) {
+                    const oldValue = element.getAttribute(attrName);
+                    // Ensure the replacement correctly targets the numeric or __prefix__ part
+                    const newValue = oldValue.replace(oldIndexPattern, `$1${newIndexStr}$3`);
+                    if (oldValue !== newValue) {
+                        element.setAttribute(attrName, newValue);
+                    }
+                }
+            });
+        }
+
+        function addNewItem() {
+            if (!emptyFormTemplate) {
+                alert("Cannot add new item: The form template is not available.");
+                return;
+            }
+            
+            const newFormNode = emptyFormTemplate.cloneNode(true);
+            let newIndex = 0;
+
+            if (totalFormsInput) {
+                newIndex = parseInt(totalFormsInput.value);
+            } else {
+                console.error("TOTAL_FORMS input not found! Cannot determine new form index.");
+                return;
+            }
+
+            const newIndexStr = String(newIndex);
+            const indexPatternInAttributes = new RegExp(`(${RegExp.escape(FORMSET_PREFIX)}-)(__prefix__|\\d+)(-)`, 'g');
+
+            newFormNode.querySelectorAll('input, select, textarea, label').forEach(el => {
+                updateElementAttributes(el, indexPatternInAttributes, newIndexStr);
+            });
+            
+            const hiddenIdInput = newFormNode.querySelector(`input[type="hidden"][name="${FORMSET_PREFIX}-${newIndexStr}-id"]`);
+            if (hiddenIdInput) {
+                hiddenIdInput.value = ''; 
+            }
+            const deleteCheckbox = newFormNode.querySelector(`input[type="checkbox"][name="${FORMSET_PREFIX}-${newIndexStr}-DELETE"]`);
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = false;
+            }
+
+            newFormNode.classList.add('new-item');
+            newFormNode.style.display = ''; 
+            formsetContainer.appendChild(newFormNode);
+            
+            if (totalFormsInput) {
+                totalFormsInput.value = newIndex + 1; 
+            }
+            
+            updateAllFormIndices(); // This also calls updateItemCounters
+            checkEmptyState();
+            attachRemoveListener(newFormNode.querySelector('.btn-remove-item')); 
+            
+            // Ensure item counter is updated for this new node specifically AFTER it's been indexed
+            const itemCounterBadge = newFormNode.querySelector('.item-counter');
+            if (itemCounterBadge) {
+                 // Find its actual index after updateAllFormIndices has run.
+                 // This is a bit tricky as updateAllFormIndices updates all.
+                 // Simpler: updateItemCounters within updateAllFormIndices handles all visible rows.
+            }
+
+
+            setTimeout(() => {
+                newFormNode.classList.remove('new-item');
+            }, 300);
+            
+            const firstFocusable = newFormNode.querySelector('input:not([type="hidden"]):not([readonly]):not([disabled]), select:not([readonly]):not([disabled]), textarea:not([readonly]):not([disabled])');
+            if (firstFocusable) {
+                firstFocusable.focus();
+            }
+        }
+
+        function updateItemCounters() {
+            const visibleRows = getVisibleRows(); // Gets rows not marked with DELETE and display!=none
+            visibleRows.forEach((row, index) => {
+                const counter = row.querySelector('.item-counter');
+                if (counter) {
+                    counter.textContent = index + 1;
+                }
+            });
+        }
+        
+        function getVisibleRows() {
+            if (!formsetContainer) return [];
+            // Filter rows that are actually part of the formset submission logic
+            // (i.e., not just visually hidden but logically removed new forms)
+            return Array.from(formsetContainer.querySelectorAll('.payment-item-row')).filter(row => {
+                const deleteCheckbox = row.querySelector(`input[type="checkbox"][name$="-DELETE"]`);
+                // A row is "visible" for counting if it's not a DELETE-marked existing form,
+                // OR if it's a new form (which wouldn't be DELETE-marked for removal, but removed from DOM).
+                // Essentially, if it's in the DOM and not display:none due to DELETE.
+                return row.style.display !== 'none';
+            });
+        }
+        
+        function checkEmptyState() {
+            if (!emptyState || !formsetContainer) return;
+            const trulyVisibleRows = Array.from(formsetContainer.querySelectorAll('.payment-item-row')).filter(row => row.style.display !== 'none');
+            if (trulyVisibleRows.length === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+
+        function updateAllFormIndices() {
+            if (!formsetContainer || !totalFormsInput) return;
+            const rows = formsetContainer.querySelectorAll('.payment-item-row');
+            let actualFormCount = 0;
+
+            rows.forEach((row, currentIndex) => { // currentIndex is the new index for this form
+                const newIndexStr = String(currentIndex);
+                // This pattern needs to correctly capture the old index to replace it.
+                // It should replace prefix-OLD_INDEX- with prefix-NEW_INDEX-
+                const currentPrefixPattern = new RegExp(`(${RegExp.escape(FORMSET_PREFIX)}-)(\\d+|__prefix__)(-)`, 'g');
+                
+                row.querySelectorAll('input, select, textarea, label').forEach(el => {
+                    updateElementAttributes(el, currentPrefixPattern, newIndexStr);
+                });
+                // Ensure the data attribute for prefix is also updated if used by other logic
+                row.dataset.formsetPrefix = `${FORMSET_PREFIX}-${newIndexStr}`;
+
+                actualFormCount++;
+            });
+
+            totalFormsInput.value = actualFormCount;
+            updateItemCounters(); // Update visual counters after re-indexing
+        }
+
+
+        function attachRemoveListener(button) {
+            if (!button) return;
+        
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const rowToRemove = this.closest('.payment-item-row');
+                if (!rowToRemove) return;
+        
+                if (!confirm('Are you sure you want to remove this item?')) {
+                    return;
+                }
+        
+                const deleteCheckbox = rowToRemove.querySelector(`input[type="checkbox"][name$="-DELETE"]`);
+                const idInput = rowToRemove.querySelector(`input[type="hidden"][name$="-id"]`);
+        
+                if (idInput && idInput.value) {
+                    // EXISTING form (has a PK from the database).
+                    // Mark for deletion by checking the DELETE checkbox and hide.
+                    if (deleteCheckbox) {
+                        deleteCheckbox.checked = true;
+                        rowToRemove.style.display = 'none';
+                        // rowToRemove.classList.add('marked-for-deletion'); // Optional: for styling or other JS
+                    } else {
+                        // This case should ideally not be reached if templates are correct.
+                        console.warn("DELETE checkbox not found for an existing form row. Removing from DOM, but this might lead to issues if Django expects it.");
+                        rowToRemove.remove();
+                    }
+                } else {
+                    // NEW form (added client-side, not yet in DB, or from empty_form).
+                    // Remove it completely from the DOM.
+                    rowToRemove.remove();
+                }
+        
+                // updateAllFormIndices will recount forms in the DOM, re-index them,
+                // and update TOTAL_FORMS. This is correct for both scenarios:
+                // - For new forms removed from DOM: they aren't counted, TOTAL_FORMS decreases.
+                // - For existing forms hidden (DELETE checked): they are still in DOM (though hidden),
+                //   so they are counted by querySelectorAll, TOTAL_FORMS includes them, and they get re-indexed.
+                //   Django will process the DELETE flag for these.
+                updateAllFormIndices();
+                checkEmptyState();
+                // updateItemCounters(); // Already called by updateAllFormIndices
+            });
+        }
+
+        function attachAllRemoveListeners() {
+            if (!formsetContainer) return;
+            formsetContainer.querySelectorAll('.btn-remove-item').forEach(button => {
+                // Clone and replace to ensure no duplicate listeners from previous calls if any
+                const newButton = button.cloneNode(true);
+                button.parentNode.replaceChild(newButton, button);
+                attachRemoveListener(newButton);
+            });
+        }
+        
+        init();
+
+        // --- Form validation enhancement (client-side on submit) ---
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                let hasClientErrors = false;
+                // Clear previous custom JS errors
+                form.querySelectorAll('.validation-error.custom-js-error').forEach(el => el.remove());
+                
+                const requiredSelector = 'input[required]:not([type="hidden"]), select[required], textarea[required]';
+                const requiredFields = form.querySelectorAll(requiredSelector);
+                
+                let firstErrorFieldElement = null;
+
+                requiredFields.forEach(field => {
+                    // Check if the field is visible and within a visible form row
+                    const parentRow = field.closest('.payment-item-row');
+                    const isFieldEffectivelyVisible = (field.offsetWidth > 0 || field.offsetHeight > 0 || field.getClientRects().length > 0) &&
+                                                     (!parentRow || parentRow.style.display !== 'none');
+
+                    if (isFieldEffectivelyVisible) {
+                        const fieldWrapper = field.closest('.form-field');
+                        if (!field.value || field.value.trim() === '') {
+                            hasClientErrors = true;
+                            if (fieldWrapper && !fieldWrapper.querySelector('.validation-error.custom-js-error')) {
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'validation-error custom-js-error error-message'; // Use existing class
+                                errorDiv.textContent = 'This field is required.';
+                                fieldWrapper.appendChild(errorDiv); 
+                                fieldWrapper.classList.add('has-error'); // Add error class to parent
+                                if (!firstErrorFieldElement) {
+                                    firstErrorFieldElement = field;
+                                }
+                            }
+                        } else {
+                             if (fieldWrapper) { // Clear previous error if now valid
+                                fieldWrapper.classList.remove('has-error');
+                                const existingError = fieldWrapper.querySelector('.validation-error.custom-js-error');
+                                if (existingError) existingError.remove();
+                             }
+                        }
+                    }
+                });
+                
+                if (hasClientErrors) {
+                    e.preventDefault(); // Prevent form submission
+                    messages.error(form, "Please correct the highlighted errors before submitting."); // Using a hypothetical messages utility
+
+                    if (firstErrorFieldElement) {
+                         firstErrorFieldElement.focus();
+                         firstErrorFieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        // If no specific field, scroll to top of form or first general error
+                        const generalError = form.querySelector('.alert.alert-error');
+                        if (generalError) {
+                            generalError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                    // Consider a more user-friendly general error message display at the top of the form
+                    let globalErrorDiv = form.querySelector('.global-form-errors');
+                    if (!globalErrorDiv) {
+                        globalErrorDiv = document.createElement('div');
+                        globalErrorDiv.className = 'alert alert-error global-form-errors';
+                        globalErrorDiv.style.marginBottom = '1rem';
+                        // Insert after the form's csrf token or at the top of the first form card.
+                        const firstCard = form.querySelector('.form-card .card-content');
+                        if (firstCard) {
+                             firstCard.insertBefore(globalErrorDiv, firstCard.firstChild);
+                        }
+                    }
+                    globalErrorDiv.textContent = 'Please correct the errors highlighted below.';
+
+                } else {
+                    const globalErrorDiv = form.querySelector('.global-form-errors');
+                    if (globalErrorDiv) globalErrorDiv.remove();
+                }
+            });
+        }
+
+
+        // Auto-save draft functionality (placeholder)
+        let saveTimeout;
+        const formInputsForDraft = form ? form.querySelectorAll('input, select, textarea') : [];
+        formInputsForDraft.forEach(input => {
+            input.addEventListener('input', function() {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    // console.log('Auto-saving draft... (Not implemented)');
+                }, 2000);
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                 if (form && document.activeElement && (document.activeElement.tagName !== 'TEXTAREA' || e.shiftKey) ) {
+                     e.preventDefault();
+                     // Find the submit button and click it, to trigger validation and other submit logic
+                     const submitButton = form.querySelector('button[type="submit"]');
+                     if (submitButton) {
+                         submitButton.click();
+                     } else if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                     } else {
+                        form.submit(); 
+                     }
+                }
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'i') { // Ctrl+I or Cmd+I
+                 if (addItemButton && addItemButton.offsetParent !== null) { 
+                    e.preventDefault();
+                    addItemButton.click(); 
+                 }
+            }
+        });
+
+        // Tooltips (basic, no library)
+        const tooltipElements = document.querySelectorAll('[title]');
+        let activeTooltip = null;
+        tooltipElements.forEach(element => {
+            const titleText = element.getAttribute('title');
+            if (!titleText) return;
+            element.removeAttribute('title'); // Use custom tooltip
+
+            element.addEventListener('mouseenter', function(e) {
+                if (activeTooltip) activeTooltip.remove(); // Remove any existing tooltip
+
+                activeTooltip = document.createElement('div');
+                activeTooltip.className = 'custom-tooltip';
+                activeTooltip.textContent = titleText;
+                document.body.appendChild(activeTooltip);
+
+                const rect = element.getBoundingClientRect();
+                activeTooltip.style.left = `${rect.left + window.scrollX}px`;
+                activeTooltip.style.top = `${rect.bottom + window.scrollY + 5}px`; // 5px below element
+                activeTooltip.style.opacity = '1';
+            });
+            element.addEventListener('mouseleave', function(e) {
+                if (activeTooltip) {
+                    activeTooltip.style.opacity = '0';
+                    setTimeout(() => { // Allow fade out
+                        if (activeTooltip) activeTooltip.remove();
+                        activeTooltip = null;
+                    }, 200);
+                }
+            });
+        });
+        // Add basic style for custom tooltip
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = `
+            .custom-tooltip { 
+                position: absolute; background-color: var(--gray-800); color: white; 
+                padding: 5px 10px; border-radius: var(--border-radius-sm); 
+                font-size: 0.75rem; z-index: 1000; opacity: 0; 
+                transition: opacity 0.2s ease-in-out; pointer-events: none;
+            }`;
+        document.head.appendChild(styleSheet);
+
+
+    }); // End of DOMContentLoaded
+</script>
+{% endblock %}

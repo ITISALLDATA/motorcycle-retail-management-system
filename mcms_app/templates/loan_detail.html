@@ -1,0 +1,1149 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Loan Details: {{ loan.loan_reference }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/loan-detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content">
+
+    <header class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon" 
+                 style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"
+                 role="img" 
+                 aria-label="Loan document icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">Loan Details</h1>
+                <p class="page-subtitle">{{ loan.loan_reference|default:"New Loan" }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'loan_list' %}" class="btn-secondary-outline" aria-label="Go back to loan list">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </header>
+
+    <div class="detail-container row">
+        {# Main Information Card #}
+        <div class="main-content col-lg-8 col-md-12">
+            <main class="detail-card" role="main">
+                <div class="card-header">
+                    <div class="card-header-content pb-3">
+                        <h2 class="card-title">Loan Information</h2>
+                        <div class="status-badge 
+                            {% if loan.loan_status == 'pending' %}status-pending-loan
+                            {% elif loan.loan_status == 'repaid' %}status-repaid-loan
+                            {% elif loan.loan_status == 'partially repaid' %}status-partial-loan
+                            {% elif loan.loan_status == 'cancelled' %}status-cancelled
+                            {% else %}status-inactive{% endif %}"
+                            aria-label="Loan status: {{ loan.get_loan_status_display }}">
+                            {{ loan.get_loan_status_display }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="detail-grid" role="group" aria-labelledby="loan-info-heading">
+                        <h3 id="loan-info-heading" class="sr-only">Loan information details</h3>
+                        
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Reference</span>
+                                <span class="detail-value">{{ loan.loan_reference|default:"N/A" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Customer</span>
+                                <span class="detail-value">
+                                    {% if loan.customer %}
+                                        <a href="{% url 'customer_detail' pk=loan.customer.pk %}" 
+                                           aria-label="View customer details for {{ loan.customer.name }}">
+                                            {{ loan.customer.name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Loan Amount</span>
+                                <span class="detail-value highlight-value" aria-label="Loan amount: {{ loan.loan_amount|floatformat:2|intcomma }} Naira">
+                                    ₦{{ loan.loan_amount|floatformat:2|intcomma }}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Current Balance</span>
+                                <span class="detail-value {% if loan.balance <= 0 %}text-success-dark{% else %}text-danger-dark{% endif %}"
+                                      aria-label="Current balance: {{ loan.balance|floatformat:2|intcomma }} Naira">
+                                    <strong>₦{{ loan.balance|floatformat:2|intcomma }}</strong>
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-group">
+                             <div class="detail-item">
+                                <span class="detail-label">Loan Date</span>
+                                <span class="detail-value">
+                                    <time datetime="{{ loan.loan_date|date:'c' }}">
+                                        {{ loan.loan_date|date:"M d, Y H:i" }}
+                                    </time>
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Linked Sale</span>
+                                <span class="detail-value">
+                                    {% if loan.sale %}
+                                        <a href="{{ loan.sale.get_absolute_url }}" 
+                                           aria-label="View linked sale {{ loan.sale.sale_reference }}">
+                                            {{ loan.sale.sale_reference }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Not linked to a specific sale</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {% if loan.remarks %}
+                        <div class="detail-item detail-item-full">
+                            <span class="detail-label">Remarks</span>
+                            <div class="detail-value remarks-content">
+                                {{ loan.remarks|linebreaksbr }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="detail-item detail-item-full">
+                            <span class="detail-label">Timestamps</span>
+                            <div class="detail-value text-muted timestamps">
+                                <span>Created: 
+                                    <time datetime="{{ loan.created_at|date:'c' }}">
+                                        {{ loan.created_at|date:"M d, Y H:i"|default:"N/A" }}
+                                    </time>
+                                </span>
+                                {% if loan.updated_at != loan.created_at %}
+                                    <span class="separator">|</span>
+                                    <span>Last Updated: 
+                                        <time datetime="{{ loan.updated_at|date:'c' }}">
+                                            {{ loan.updated_at|date:"M d, Y H:i"|default:"N/A" }}
+                                        </time>
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            {# Action Buttons #}
+            <section class="action-bar" aria-label="Loan actions">
+                {% if loan.loan_status != 'cancelled' and loan.loan_status != 'repaid' %}
+                    {% if loan.sale and loan.sale.status == 'ACTIVE' %}
+                        <button class="btn btn-primary me-2" 
+                                disabled 
+                                title="Loan is linked to active Sale '{{ loan.sale.sale_reference }}'. Manage via the Sale."
+                                aria-describedby="edit-disabled-reason">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                            </svg>
+                            Edit Loan
+                        </button>
+                        <div id="edit-disabled-reason" class="sr-only">
+                            Loan is linked to active Sale '{{ loan.sale.sale_reference }}'. Manage via the Sale.
+                        </div>
+                        
+                        <button class="btn btn-danger me-2" 
+                                disabled 
+                                title="Loan is linked to active Sale '{{ loan.sale.sale_reference }}'. Cancel the Sale first."
+                                aria-describedby="cancel-disabled-reason">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            Cancel Loan
+                        </button>
+                        <div id="cancel-disabled-reason" class="sr-only">
+                            Loan is linked to active Sale '{{ loan.sale.sale_reference }}'. Cancel the Sale first.
+                        </div>
+                    {% else %}
+                        <a href="{% url 'loan_edit' loan_id=loan.pk %}" 
+                           class="btn btn-primary me-2"
+                           aria-label="Edit this loan">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                            </svg>
+                            Edit Loan
+                        </a>
+                        <a href="{% url 'loan_cancel_confirm' loan_id=loan.pk %}" 
+                           class="btn btn-danger me-2"
+                           aria-label="Cancel this loan"
+                           onclick="return confirm('Are you sure you want to cancel this loan? This action cannot be undone.')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            Cancel Loan
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <button class="btn btn-secondary me-2" 
+                            disabled 
+                            title="Loan is {{ loan.get_loan_status_display }}"
+                            aria-label="Edit loan - disabled because loan is {{ loan.get_loan_status_display }}">
+                        Edit Loan
+                    </button>
+                    <button class="btn btn-danger me-2" 
+                            disabled 
+                            title="Loan is {{ loan.get_loan_status_display }}"
+                            aria-label="Cancel loan - disabled because loan is {{ loan.get_loan_status_display }}">
+                        Cancel Loan
+                    </button>
+                {% endif %}
+
+                {% if loan.loan_status == 'pending' or loan.loan_status == 'partially repaid' %}
+                <a href="{% url 'loan_repayment_create' %}?loan_id={{ loan.pk }}" 
+                   class="btn btn-success"
+                   aria-label="Add a repayment for this loan">
+                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                     </svg>
+                    Add Repayment
+                </a>
+                {% endif %}
+            </section>
+        </div>
+
+        {# Right Sidebar - Repayments for this Loan #}
+        <aside class="right-sidebar col-lg-4 d-none d-lg-block" aria-label="Loan repayments">
+            <div class="sidebar-content">
+                <div class="detail-card">
+                    <div class="card-header pb-3">
+                        <h2 class="card-title">Loan Repayments</h2>
+                        {% if repayments %}
+                            <span class="repayment-count" aria-label="{{ repayments|length }} repayments">
+                                ({{ repayments|length }})
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if repayments %}
+                            <div class="activity-feed" role="feed" aria-label="Repayment history">
+                                {% for rp in repayments %}
+                                    <article class="activity-item" role="article">
+                                        <div class="activity-icon bg-success-icon" 
+                                             role="img" 
+                                             aria-label="Repayment">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                                                <polyline points="12,7 12,13 16,13 "/>
+                                            </svg>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">
+                                                <a href="{{ rp.get_absolute_url }}" 
+                                                   aria-label="View repayment details for repayment #{{ rp.pk }}">
+                                                    Repayment #{{ rp.pk }}
+                                                </a>
+                                            </div>
+                                            <div class="activity-meta">
+                                                <time class="activity-date" 
+                                                      datetime="{{ rp.repayment_date|date:'c' }}">
+                                                    {{ rp.repayment_date|date:"M d, Y H:i" }}
+                                                </time>
+                                                <span class="activity-amount" 
+                                                      aria-label="Repayment amount: {{ rp.repayment_amount|floatformat:0|intcomma }} Naira">
+                                                    ₦{{ rp.repayment_amount|floatformat:0|intcomma }}
+                                                </span>
+                                            </div>
+                                            {% if rp.remarks %}
+                                            <div class="activity-remarks">
+                                                <small class="text-muted">
+                                                    <strong>Remarks:</strong> {{ rp.remarks|truncatewords:10 }}
+                                                </small>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-state-small">
+                                <div class="empty-icon" role="img" aria-label="No repayments">
+                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M8 12h8"/>
+                                    </svg>
+                                </div>
+                                <p class="empty-text">No repayments recorded for this loan yet.</p>
+                                {% if loan.loan_status == 'pending' or loan.loan_status == 'partially repaid' %}
+                                <a href="{% url 'loan_repayment_create' %}?loan_id={{ loan.pk }}" 
+                                   class="btn btn-sm btn-primary mt-2">
+                                    Add First Repayment
+                                </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+{# Mobile repayments section #}
+<div class="mobile-repayments d-lg-none">
+    <div class="detail-card">
+        <div class="card-header pb-3">
+            <h2 class="card-title">Loan Repayments</h2>
+        </div>
+        <div class="card-body">
+            {% if repayments %}
+                <div class="activity-feed">
+                    {% for rp in repayments %}
+                        <article class="activity-item">
+                            <div class="activity-icon bg-success-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                                    <polyline points="12,7 12,13 16,13 "/>
+                                </svg>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">
+                                    <a href="{{ rp.get_absolute_url }}">Repayment #{{ rp.pk }}</a>
+                                </div>
+                                <div class="activity-meta">
+                                    <time datetime="{{ rp.repayment_date|date:'c' }}">
+                                        {{ rp.repayment_date|date:"M d, Y H:i" }}
+                                    </time>
+                                    <span class="activity-amount">₦{{ rp.repayment_amount|floatformat:0|intcomma }}</span>
+                                </div>
+                                {% if rp.remarks %}
+                                <small class="text-muted d-block mt-1">
+                                    <strong>Remarks:</strong> {{ rp.remarks|truncatewords:10 }}
+                                </small>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-small">
+                    <p class="empty-text">No repayments recorded for this loan yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# Loading states and error handling #}
+<div id="loading-overlay" class="loading-overlay" style="display: none;" aria-hidden="true">
+    <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+</div>
+<style>
+    /* ===============================================
+   Loan Detail Page Styles
+   =============================================== */
+
+/* CSS Variables */
+:root {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #3b82f6;
+    --purple-color: #8b5cf6;
+    --purple-hover: #7c3aed;
+    
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+    --border-radius-sm: 8px;
+    
+    --transition-base: all 0.2s ease;
+    --transition-fast: all 0.15s ease;
+}
+
+/* Screen Reader Only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Layout */
+.content {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb-nav {
+    margin-bottom: 1rem;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+    background-color: var(--gray-50);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--gray-200);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    display: inline-block;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    color: var(--gray-400);
+    content: "/";
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: var(--transition-fast);
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: var(--gray-600);
+    font-size: 0.875rem;
+}
+
+/* Page Header */
+.page-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: var(--gray-600);
+    margin: 0;
+    font-weight: 500;
+}
+
+.header-actions .btn-secondary-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    background: white;
+    color: var(--gray-700);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: var(--transition-base);
+}
+
+.header-actions .btn-secondary-outline:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Cards */
+.detail-card {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: var(--transition-base);
+}
+
+.detail-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    padding: 1.5rem 1.5rem 0;
+    border-bottom: none;
+}
+
+.card-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.repayment-count {
+    font-size: 0.875rem;
+    color: var(--gray-500);
+    background: var(--gray-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 500;
+}
+
+.card-body {
+    padding: 1.5rem;
+    padding-top: 1rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    display: inline-block;
+    line-height: 1;
+}
+
+.status-pending-loan {
+    background-color: #fef9c3;
+    color: #a16207;
+}
+
+.status-repaid-loan {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-partial-loan {
+    background-color: #e0f2fe;
+    color: #0ea5e9;
+}
+
+.status-cancelled {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-inactive {
+    background-color: var(--gray-100);
+    color: var(--gray-700);
+}
+
+/* Detail Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem 2rem;
+}
+
+.detail-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.detail-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    line-height: 1.4;
+}
+
+.detail-value.highlight-value {
+    font-weight: 700;
+    color: var(--danger-color);
+    font-size: 1.1em;
+}
+
+.detail-value.text-success-dark {
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.detail-value.text-danger-dark {
+    font-weight: 600;
+    color: var(--danger-color);
+}
+
+.detail-value a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition-fast);
+}
+
+.detail-value a:hover {
+    text-decoration: underline;
+    color: var(--primary-hover);
+}
+
+.detail-value .text-muted {
+    color: var(--gray-500);
+}
+
+.detail-item-full {
+    grid-column: 1 / -1;
+}
+
+.remarks-content {
+    background: var(--gray-50);
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border-left: 3px solid var(--gray-300);
+    font-style: italic;
+}
+
+.timestamps {
+    font-size: 0.8rem !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.timestamps .separator {
+    color: var(--gray-400);
+    margin: 0 0.25rem;
+}
+
+/* Action Bar & Buttons */
+.action-bar {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 1.5rem 0 0 0;
+    border-top: 1px solid var(--gray-100);
+    margin-top: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-base);
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+}
+
+.btn:disabled,
+.btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #059669;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--gray-300);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-sm {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8rem;
+}
+
+.btn svg {
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+}
+
+/* Focus styles for accessibility */
+.btn:focus,
+.btn-secondary-outline:focus,
+.detail-value a:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Activity Feed */
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.activity-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    transition: var(--transition-fast);
+}
+
+.activity-item:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-200);
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.bg-success-icon {
+    background-color: var(--success-color);
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title a,
+.activity-title {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: var(--transition-fast);
+}
+
+.activity-title a:hover {
+    text-decoration: underline;
+    color: var(--primary-hover);
+}
+
+.activity-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    gap: 0.5rem;
+}
+
+.activity-date {
+    color: var(--gray-500);
+    flex-shrink: 0;
+}
+
+.activity-amount {
+    font-weight: 600;
+    color: var(--gray-700);
+    text-align: right;
+}
+
+.activity-remarks {
+    margin-top: 0.5rem;
+}
+
+/* Empty States */
+.empty-state-small {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.empty-icon {
+    color: var(--gray-300);
+    margin-bottom: 1rem;
+}
+
+.empty-icon svg {
+    width: 48px;
+    height: 48px;
+}
+
+.empty-text {
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+/* Mobile Repayments Section */
+.mobile-repayments {
+    margin-top: 1.5rem;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius-lg);
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--gray-200);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .right-sidebar {
+        margin-top: 1.5rem;
+    }
+    
+    .content {
+        padding-right: 1rem;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem;
+    }
+    
+    .page-header-modern {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .header-content {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .header-actions {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+    }
+    
+    .action-bar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .btn {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .activity-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .activity-amount {
+        text-align: left;
+    }
+    
+    .breadcrumb {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        padding-right: 0.25rem;
+        padding-left: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .header-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-header {
+        padding: 1rem 1rem 0;
+    }
+    
+    .activity-item {
+        padding: 0.5rem;
+    }
+    
+    .activity-icon {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .activity-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .header-actions,
+    .action-bar,
+    .breadcrumb-nav {
+        display: none !important;
+    }
+    
+    .detail-card {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+        page-break-inside: avoid;
+    }
+    
+    .page-header-modern {
+        border-bottom: 2px solid var(--gray-900);
+        margin-bottom: 1rem;
+    }
+    
+    .activity-item {
+        border: 1px solid var(--gray-300);
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .detail-card {
+        border: 2px solid var(--gray-900);
+    }
+    
+    .status-badge {
+        border: 1px solid currentColor;
+    }
+    
+    .btn {
+        border: 2px solid currentColor;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .btn:hover:not(:disabled) {
+        transform: none;
+    }
+}
+</style>
+<script>
+// Simple JavaScript for enhanced UX
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading states for form submissions
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.setAttribute('aria-hidden', 'false');
+            }
+        });
+    });
+    
+    // Add smooth scrolling for anchor links
+    const anchorLinks = document.querySelectorAll('a[href^="#"]');
+    anchorLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+    
+    // Enhanced keyboard navigation
+    const actionButtons = document.querySelectorAll('.action-bar .btn');
+    actionButtons.forEach((button, index) => {
+        button.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' && actionButtons[index + 1]) {
+                actionButtons[index + 1].focus();
+            } else if (e.key === 'ArrowLeft' && actionButtons[index - 1]) {
+                actionButtons[index - 1].focus();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

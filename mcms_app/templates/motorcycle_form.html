@@ -1,0 +1,49 @@
+
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div class="page-title">
+            <h4>{% if edit_mode %}Edit Motorcycle{% else %}Add New Motorcycle{% endif %}</h4>
+            <h6>{% if edit_mode %}Edit motorcycles{% else %}Add new motorcycles{% endif %}</h6>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="">
+                {% csrf_token %}
+                
+                <div class="row">
+
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="id_brand">Brand Name</label>
+                            {{ form.brand }}                    
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="id_model">Model Name</label>
+                            {{ form.name }}
+                        </div>
+                    </div>
+
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="col-lg-12">
+                        <button type="submit" class="btn btn-submit me-2">
+                            {% if edit_mode %}Update Motorcycle{% else %}Submit{% endif %}
+                        </button>
+                        <a href="{% url 'motorcycle_list' %}" class="btn btn-cancel">Cancel</a>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

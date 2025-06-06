@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Confirm Cancellation - {{ item_type }}{% endblock %}
+
+{% block content %}
+<div class="modern-page-wrapper">
+    <div class="container">
+        <!-- Header Section -->
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="modern-breadcrumb breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ back_url|default:'javascript:history.back()' }}">Previous Page</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Confirm Cancellation</li>
+                </ol>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-8">
+                <div class="modern-card">
+                    <div class="modern-card-body">
+                        <!-- Warning Icon -->
+                        <div class="warning-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h1 class="modern-title text-center">
+                            Confirm Cancellation
+                        </h1>
+                        
+                        <!-- Subtitle -->
+                        <p class="modern-subtitle text-center">
+                            You are about to cancel the following {{ item_type|lower }}:
+                        </p>
+
+                        <!-- Item Highlight -->
+                        <div class="item-highlight text-center">
+                            {{ item_identifier|default:item }}
+                        </div>
+
+                        <!-- View Details Link -->
+                        {% if item and item.get_absolute_url %}
+                        <div class="text-center mb-3">
+                            <a href="{{ item.get_absolute_url }}" class="view-details-link">
+                                <i class="fas fa-eye"></i>
+                                View {{ item_type|lower }} details before cancelling
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Additional Warning -->
+                        {% if additional_warning_message %}
+                        <div class="modern-alert modern-alert-warning">
+                            <div class="modern-alert-title">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Important
+                            </div>
+                            <div>{{ additional_warning_message }}</div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Consequences -->
+                        {% if cancellation_consequences %}
+                        <div class="modern-alert modern-alert-info">
+                            <div class="modern-alert-title">
+                                <i class="fas fa-info-circle"></i>
+                                Please be aware of the following consequences:
+                            </div>
+                            <ul>
+                                {% for consequence in cancellation_consequences %}
+                                    <li>{{ consequence }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Form Section -->
+                        <form method="post" action="{{ cancel_action_url }}" class="modern-form">
+                            {% csrf_token %}
+                            
+                            <div class="modern-disclaimer">
+                                This action may not be easily undone.
+                            </div>
+                            
+                            <div class="button-group">
+                                <button type="submit" class="modern-btn modern-btn-danger">
+                                    <i class="fas fa-times-circle"></i>
+                                    Yes, Cancel {{ item_type }}
+                                </button>
+                                <a href="{{ back_url|default:'javascript:history.back()' }}" class="modern-btn modern-btn-secondary">
+                                    <i class="fas fa-arrow-left"></i>
+                                    No, Go Back
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --danger-primary: #ef4444;
+        --danger-hover: #dc2626;
+        --warning-bg: #fef3c7;
+        --warning-border: #f59e0b;
+        --info-bg: #dbeafe;
+        --info-border: #3b82f6;
+        --surface: #ffffff;
+        --surface-secondary: #f8fafc;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+    }
+
+    .modern-page-wrapper {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+
+    .modern-breadcrumb {
+        background: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .modern-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+        content: "→";
+        color: var(--text-muted);
+        margin: 0 0.5rem;
+    }
+
+    .modern-breadcrumb a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .modern-breadcrumb a:hover {
+        color: var(--danger-primary);
+    }
+
+    .modern-card {
+        background: var(--surface);
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        box-shadow: var(--shadow-xl);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .modern-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--danger-primary), #f59e0b);
+    }
+
+    .modern-card-body {
+        padding: 3rem;
+    }
+
+    .warning-icon {
+        width: 4rem;
+        height: 4rem;
+        background: linear-gradient(135deg, var(--danger-primary), #f59e0b);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .warning-icon i {
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .modern-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .modern-subtitle {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .item-highlight {
+        background: linear-gradient(135deg, #fef3c7, #fed7aa);
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--warning-border);
+        margin: 1.5rem 0;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1.125rem;
+    }
+
+    .modern-alert {
+        border-radius: 0.75rem;
+        border: none;
+        padding: 1.25rem;
+        margin: 1.5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .modern-alert::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+    }
+
+    .modern-alert-warning {
+        background: var(--warning-bg);
+        color: #92400e;
+    }
+
+    .modern-alert-warning::before {
+        background: var(--warning-border);
+    }
+
+    .modern-alert-info {
+        background: var(--info-bg);
+        color: #1e40af;
+    }
+
+    .modern-alert-info::before {
+        background: var(--info-border);
+    }
+
+    .modern-alert-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .modern-alert ul {
+        margin: 0.75rem 0 0 1.5rem;
+        padding: 0;
+    }
+
+    .modern-alert li {
+        margin-bottom: 0.25rem;
+    }
+
+    .modern-form {
+        border-top: 1px solid var(--border-color);
+        padding-top: 2rem;
+        margin-top: 2rem;
+    }
+
+    .modern-disclaimer {
+        color: var(--text-muted);
+        font-style: italic;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 0.9rem;
+    }
+
+    .modern-btn {
+        padding: 0.875rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-width: 140px;
+    }
+
+    .modern-btn-danger {
+        background: var(--danger-primary);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .modern-btn-danger:hover {
+        background: var(--danger-hover);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+        color: white;
+    }
+
+    .modern-btn-secondary {
+        background: var(--surface-secondary);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-color);
+    }
+
+    .modern-btn-secondary:hover {
+        background: #e2e8f0;
+        color: var(--text-primary);
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .view-details-link {
+        color: var(--danger-primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .view-details-link:hover {
+        color: var(--danger-hover);
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .modern-card-body {
+            padding: 2rem 1.5rem;
+        }
+        
+        .modern-title {
+            font-size: 1.5rem;
+        }
+        
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .modern-btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

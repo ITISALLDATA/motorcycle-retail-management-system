@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Customer Details: {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {# Modern Header #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);"> {# Indigo for Customers #}
+                {# Customer/User Icon #}
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">Customer Details</h1>
+                <p class="page-subtitle">{{ customer.name|default:"N/A" }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'customer_list' %}" class="btn-secondary-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-container row">
+        {# Main Information Area #}
+        <div class="main-content col-lg-8 col-md-12">
+            {# Customer Information Card #}
+            <div class="detail-card">
+                <div class="card-header pb-3">
+                    <h2 class="card-title">Contact Information</h2>
+                </div>
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Full Name</span>
+                                <span class="detail-value">{{ customer.name|default:"N/A" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone Number</span>
+                                <span class="detail-value">{{ customer.phone|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item detail-item-full"> {# Address can take full width #}
+                            <span class="detail-label">Address</span>
+                            <span class="detail-value">{{ customer.address|default_if_none:"N/A"|linebreaksbr }}</span>
+                        </div>
+                        <div class="detail-item detail-item-full">
+                            <span class="detail-label">Timestamps</span>
+                             <span class="detail-value text-muted" style="font-size: 0.8rem;">
+                                Joined: {{ customer.created_at|date:"M d, Y H:i"|default:"N/A" }} {# Assuming Customer model has created_at #}
+                                {% if customer.updated_at != customer.created_at %}
+                                    | Last Profile Update: {{ customer.updated_at|date:"M d, Y H:i"|default:"N/A" }} {# Assuming updated_at #}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Financial Summary Stats Cards #}
+            <div class="financial-summary-deck row">
+                <div class="col-md-4">
+                    <div class="stat-card stat-card-deposits">
+                        <div class="stat-icon">
+                            <svg fill="#ffffff" width="30px" height="30px" viewBox="0 0 24 24" id="naira" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path id="primary" d="M20,13H18V11h2a1,1,0,0,0,0-2H18V3a1,1,0,0,0-2,0V9H11.48L7.87,2.51A1,1,0,0,0,6,3V9H4a1,1,0,0,0,0,2H6v2H4a1,1,0,0,0,0,2H6v6a1,1,0,0,0,2,0V15h4.52l3.61,6.49A1,1,0,0,0,17,22a1.07,1.07,0,0,0,.25,0A1,1,0,0,0,18,21V15h2a1,1,0,0,0,0-2Zm-4-2v2H13.7l-1.11-2ZM8,6.86,9.19,9H8ZM8,13V11h2.3l1.11,2Zm8,4.14L14.81,15H16Z" style="fill: #ffffff;"></path></g></svg>
+
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">{{ stats.total_deposits_amount|default:"0.00"|floatformat:2|intcomma }}</div>
+                            <div class="stat-label">Total Deposits ({{ stats.total_deposits_count|default:0 }})</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card stat-card-withdrawals">
+                         <div class="stat-icon">
+                            <svg fill="#ffffff" width="30px" height="30px" viewBox="0 0 24 24" id="naira" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path id="primary" d="M20,13H18V11h2a1,1,0,0,0,0-2H18V3a1,1,0,0,0-2,0V9H11.48L7.87,2.51A1,1,0,0,0,6,3V9H4a1,1,0,0,0,0,2H6v2H4a1,1,0,0,0,0,2H6v6a1,1,0,0,0,2,0V15h4.52l3.61,6.49A1,1,0,0,0,17,22a1.07,1.07,0,0,0,.25,0A1,1,0,0,0,18,21V15h2a1,1,0,0,0,0-2Zm-4-2v2H13.7l-1.11-2ZM8,6.86,9.19,9H8ZM8,13V11h2.3l1.11,2Zm8,4.14L14.81,15H16Z" style="fill: #ffffff;"></path></g></svg>
+
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">{{ stats.total_withdrawals_amount|default:"0.00"|floatformat:2|intcomma }}</div>
+                            <div class="stat-label">Total Withdrawals ({{ stats.total_withdrawals_count|default:0 }})</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card stat-card-balance {% if stats.current_balance < 0 %}negative-balance{% endif %}">
+                         <div class="stat-icon">
+                            <svg fill="#ffffff" width="30px" height="30px" viewBox="0 0 24 24" id="naira" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path id="primary" d="M20,13H18V11h2a1,1,0,0,0,0-2H18V3a1,1,0,0,0-2,0V9H11.48L7.87,2.51A1,1,0,0,0,6,3V9H4a1,1,0,0,0,0,2H6v2H4a1,1,0,0,0,0,2H6v6a1,1,0,0,0,2,0V15h4.52l3.61,6.49A1,1,0,0,0,17,22a1.07,1.07,0,0,0,.25,0A1,1,0,0,0,18,21V15h2a1,1,0,0,0,0-2Zm-4-2v2H13.7l-1.11-2ZM8,6.86,9.19,9H8ZM8,13V11h2.3l1.11,2Zm8,4.14L14.81,15H16Z" style="fill: #ffffff;"></path></g></svg>
+
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value">{{ stats.current_balance|default:"0.00"|floatformat:2|intcomma }}</div>
+                            <div class="stat-label">Current Balance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Action Bar #}
+            <div class="action-bar">
+                <a href="{% url 'customer_edit' pk=customer.pk %}" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    Edit Customer
+                </a>
+                {# Add other actions like "New Sale for Customer", "New Deposit" etc. if desired #}
+                 <a href="{% url 'deposit_create' %}?customer_id={{ customer.pk }}" class="btn btn-success ms-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Deposit
+                </a>
+                <a href="{% url 'sale_create' %}?customer_id={{ customer.pk }}" class="btn btn-info ms-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M17 19.5A2.5 2.5 0 0 0 19.5 17H22v-2.5M17 19.5A2.5 2.5 0 0 1 14.5 17H2v2.5"/><line x1="7" y1="15" x2="7" y2="12"/><line x1="12" y1="15" x2="12" y2="12"/></svg>
+                    New Sale
+                </a>
+            </div>
+        </div>
+
+        {# Right Sidebar - Recent Deposits & Withdrawals #}
+        <div class="right-sidebar col-lg-4 d-none d-lg-block">
+            <div class="sidebar-content">
+                <div class="detail-card">
+                    <div class="card-header pb-3"><h2 class="card-title">Recent Deposits</h2></div>
+                    <div class="card-body">
+                        {% if deposits %}
+                            <div class="activity-feed">
+                                {% for deposit in deposits %}
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-success-icon">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/><polyline points="12,7 12,13 16,13 "/><path d="M6 18A6 6 0 0 0 16 13"/></svg>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title"><a href="{{ deposit.get_absolute_url }}">{{ deposit.deposit_reference }}</a></div>
+                                            <div class="activity-description">Type: {{ deposit.get_deposit_type_display }}</div>
+                                            <div class="activity-meta">
+                                                <span class="activity-date">{{ deposit.deposit_date|date:"M d, Y" }}</span>
+                                                <span class="activity-amount">₦{{ deposit.deposit_amount|floatformat:0|intcomma }}</span>
+                                            </div>
+                                            <div class="status-text-{% if deposit.deposit_status == 'active' %}active{% elif deposit.deposit_status == 'completed' %}completed{% elif deposit.deposit_status == 'cancelled' %}cancelled{% endif %}" style="font-size:0.8em; margin-top:3px;">
+                                                {{ deposit.get_deposit_status_display }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="empty-text">No recent deposits found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="card-header pb-3"><h2 class="card-title">Recent Withdrawals</h2></div>
+                    <div class="card-body">
+                        {% if withdrawals %}
+                             <div class="activity-feed">
+                                {% for wd in withdrawals %}
+                                    <div class="activity-item {% if wd.withdrawal_status == 'cancelled' %}activity-item-cancelled{% endif %}">
+                                        <div class="activity-icon {% if wd.withdrawal_status == 'cancelled' %}bg-lightred-icon{% else %}bg-danger-icon{% endif %}"> {# Danger for withdrawal outflow #}
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><path d="m18 15-4-4-4 4"/></svg>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title"><a href="{{ wd.get_absolute_url }}">Withdrawal #{{wd.pk}}</a></div>
+                                            <div class="activity-meta">
+                                                <span class="activity-date">{{ wd.withdrawal_date|date:"M d, Y" }}</span>
+                                                <span class="activity-amount">₦{{ wd.withdrawal_amount|floatformat:0|intcomma }}</span>
+                                            </div>
+                                             <div class="status-text-{% if wd.withdrawal_status == 'completed' %}completed{% elif wd.withdrawal_status == 'cancelled' %}cancelled{% endif %}" style="font-size:0.8em; margin-top:3px;">
+                                                {{ wd.get_withdrawal_status_display }}
+                                            </div>
+                                            {% if wd.sale %}<small class="text-muted d-block mt-1">For Sale: <a href="{{wd.sale.get_absolute_url}}">{{wd.sale.sale_reference}}</a></small>{% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="empty-text">No recent withdrawals found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* --- Paste the FULL CSS from motorcycle_detail.html or a shared CSS file here --- */
+/* This ensures all :root variables and utility classes are available. */
+
+/* CSS Variables (Example, ensure these match your established theme) */
+:root {
+    --primary-color: #f97316; /* Orange */
+    --primary-hover: #ea580c;
+    --success-color: #10b981; /* Green */
+    --warning-color: #f59e0b; /* Amber */
+    --danger-color: #ef4444;  /* Red */
+    --info-color: #3b82f6;    /* Blue */
+    --indigo-color: #6366f1; /* Indigo for Customers */
+    --indigo-hover: #4f46e5;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db;
+    --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
+    --gray-800: #1f2937; --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+}
+
+/* Layout & Basic Structure (from previous redesigns) */
+.content { max-width: 100%; margin: 0 auto; padding: 2rem 1rem; }
+.page-header-modern { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1.5rem 0; border-bottom: 1px solid var(--gray-200); }
+.header-content { display: flex; align-items: center; gap: 1rem; }
+.header-icon { width: 56px; height: 56px; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; color: white; box-shadow: var(--shadow-md); }
+.header-text { display: flex; flex-direction: column; gap: 0.25rem; }
+.page-title { font-size: 1.875rem; font-weight: 700; color: var(--gray-900); margin: 0; line-height: 1.2; }
+.page-subtitle { font-size: 1.125rem; color: var(--gray-600); margin: 0; font-weight: 500; }
+.header-actions .btn-secondary-outline { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); background: white; color: var(--gray-700); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease; }
+.header-actions .btn-secondary-outline:hover { background: var(--gray-50); border-color: var(--gray-400); }
+
+.detail-container { /* This is the .row */ }
+.main-content { /* This is .col-lg-8 */ }
+.right-sidebar { /* This is .col-lg-4 */ }
+.sidebar-content { padding-top: 0; }
+
+/* Cards */
+.detail-card { background: white; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); margin-bottom: 1.5rem; overflow: hidden; }
+.detail-card:hover { box-shadow: var(--shadow-md); }
+.card-header { padding: 1.5rem 1.5rem 0; border-bottom: none; }
+.card-header-content { display: flex; justify-content: space-between; align-items: center; } /* Keep if using status badges in header */
+.card-title { font-size: 1.25rem; font-weight: 600; color: var(--gray-900); margin: 0; }
+.card-body { padding: 1.5rem; padding-top: 1rem; }
+
+/* Detail Grid for Customer Info */
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem 2rem; }
+.detail-group { display: flex; flex-direction: column; gap: 1rem; }
+.detail-item { display: flex; flex-direction: column; gap: 0.35rem; }
+.detail-label { font-size: 0.8rem; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.025em; }
+.detail-value { font-size: 0.95rem; font-weight: 600; color: var(--gray-800); }
+.detail-value a { color: var(--primary-color); text-decoration: none; }
+.detail-value a:hover { text-decoration: underline; }
+.detail-item-full { grid-column: 1 / -1; }
+
+/* Financial Summary Stat Cards */
+.financial-summary-deck { margin-bottom: 1.5rem; } /* Add margin if it's a separate row */
+.stat-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+.stat-card:hover { box-shadow: var(--shadow-md); }
+.stat-card .stat-icon {
+    width: 48px; height: 48px;
+    border-radius: var(--border-radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+}
+.stat-card-deposits .stat-icon { background-color: var(--success-color); }
+.stat-card-withdrawals .stat-icon { background-color: var(--danger-color); }
+.stat-card-balance .stat-icon { background-color: var(--info-color); }
+.stat-card-balance.negative-balance .stat-icon { background-color: var(--warning-color); }
+
+.stat-card .stat-content { flex: 1; }
+.stat-card .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--gray-900); line-height: 1; }
+.stat-card-balance.negative-balance .stat-value { color: var(--danger-color); }
+.stat-card .stat-label { font-size: 0.875rem; color: var(--gray-600); margin-top: 0.25rem; }
+
+/* Action Bar & Buttons */
+.action-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; padding: 1.5rem 0 0 0; }
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--border-radius); font-size: 0.875rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed !important; }
+.btn-primary { background: var(--primary-color); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); box-shadow: var(--shadow-md); }
+.btn-success { background: var(--success-color); color: white; }
+.btn-success:hover:not(:disabled) { background-color: #059669; box-shadow: var(--shadow-md); }
+.btn-info { background: var(--info-color); color: white; }
+.btn-info:hover:not(:disabled) { background-color: #2563eb; box-shadow: var(--shadow-md); }
+.btn svg { vertical-align: middle; margin-right: 0.35em; width: 1em; height: 1em; }
+
+/* Activity Feed (for recent deposits/withdrawals) */
+.activity-feed { display: flex; flex-direction: column; gap: 0.75rem; }
+.activity-item { display: flex; gap: 0.75rem; padding: 0.75rem; border-radius: var(--border-radius); background: var(--gray-50); border: 1px solid var(--gray-100); }
+.activity-item-cancelled { background-color: #fff5f5; border-color: #ffe2e2; } /* If needed for deposits/withdrawals */
+.activity-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+.bg-success-icon { background-color: var(--success-color); } /* For deposits */
+.bg-danger-icon { background-color: var(--danger-color); } /* For withdrawals */
+.bg-lightred-icon { background-color: var(--danger-color); } /* For cancelled status consistency */
+
+.activity-content { flex: 1; min-width: 0; }
+.activity-title a, .activity-title { font-weight: 600; color: var(--primary-color); text-decoration: none; font-size: 0.9rem;}
+.activity-title a:hover { text-decoration: underline; }
+.activity-title .badge { margin-left: 0.5em; font-size: 0.7em; }
+.activity-description { font-size: 0.8rem; color: var(--gray-600); margin-top: 0.1rem; }
+.status-text-active { color: var(--success-color); font-weight: 500; }
+.status-text-completed { color: var(--info-color); font-weight: 500; } /* Different color for completed deposit status text */
+.status-text-cancelled { color: var(--danger-color); font-weight: 500; }
+.activity-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem; font-size: 0.75rem; }
+.activity-date { color: var(--gray-500); }
+.activity-amount { font-weight: 600; color: var(--gray-700); }
+
+.empty-text { color: var(--gray-500); font-size: 0.875rem; }
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) { 
+    .right-sidebar { margin-top: 1.5rem; }
+    .content { padding-right: 1rem; }
+    .financial-summary-deck .col-md-4 { margin-bottom: 1rem; }
+}
+@media (max-width: 768px) {
+    .content { padding: 1rem; }
+    .page-header-modern { flex-direction: column; gap: 1rem; align-items: stretch; }
+    .header-content { justify-content: center; }
+    .header-actions { display: flex; justify-content: center; }
+    .detail-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .action-bar { flex-direction: column; }
+    .btn { justify-content: center; }
+}
+</style>
+{% endblock %}

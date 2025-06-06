@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div class="page-title">
+            <h4>Customer List</h4>
+            <h6>Manage your customers</h6>
+        </div>
+        <div class="page-btn">
+            <a href="{% url 'customer_create' %}" class="btn btn-added">
+                <img src="{% static 'img/icons/plus.svg' %}" alt="img" class="me-1">Add New Customer
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-top">
+                <div class="search-set">
+                    <div class="search-path">
+                        <a class="btn btn-filter" id="filter_search">
+                            <img src="{% static 'img/icons/filter.svg' %}" alt="img">
+                            <span><img src="{% static 'img/icons/closes.svg' %}" alt="img"></span>
+                        </a>
+                    </div>
+                    <div class="search-input">
+                        <a class="btn btn-searchset"><img src="{% static 'img/icons/search-white.svg' %}" alt="img"></a>
+                    </div>
+                </div>
+                <div class="wordset">
+                    <ul>
+                        <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img
+                                    src="{% static 'img/icons/printer.svg' %}" alt="img"></a></li>
+                        <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img
+                                    src="{% static 'img/icons/pdf.svg' %}" alt="img"></a></li>
+                        <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img
+                                    src="{% static 'img/icons/excel.svg' %}" alt="img"></a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mb-3" id="filter_inputs">
+                <div class="card-body pb-0">
+                    <div class="row">
+                        <div class="col-lg-12 col-sm-12">
+                            <form method="get" class="row">
+                                <div class="col-sm-auto">
+                                    {{ filter_form.firstname }}
+                                </div>
+                                <div class="col-sm-auto">
+                                    {{ filter_form.lastname }}
+                                </div>
+                                <div class="col-sm-auto">
+                                    {{ filter_form.phone }}
+                                </div>
+                                <div class="col-auto align-self-end">
+                                    <button type="submit" class="btn btn-primary">Filter</button>
+                                    <a href="{% url 'customer_list' %}" class="btn btn-secondary ms-2">Reset</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table datanew">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer Name</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td>{{customer.pk}}</td>
+                            <td>
+                                <a href="{% url 'customer_detail' pk=customer.pk %}">{{ customer.name }}</a>
+                            </td>
+                            <td>{{ customer.phone }}</td>
+                            <td>{{ customer.address|default_if_none:"N/A" }}</td>
+                            <td>
+                                <a class="me-3" href="{% url 'customer_detail' pk=customer.pk %}">
+                                    <img src="{% static 'img/icons/eye.svg' %}" alt="img">
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "mcms_app/partials/pagination.html" %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('customerSearch').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            const searchValue = this.value;
+            window.location.href = `?search=${searchValue}`;
+        }
+    });
+    // Re-submit search on button click
+    document.querySelector('.btn-searchset').addEventListener('click', function () {
+        const searchValue = document.getElementById('customerSearch').value;
+        window.location.href = `?search=${searchValue}`;
+    });
+</script>
+{% endblock %}

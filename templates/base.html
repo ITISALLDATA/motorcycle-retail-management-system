@@ -1,0 +1,432 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
+    <meta name="description" content="Ayotola & Sons">
+    <meta name="keywords"
+        content="admin, estimates, bootstrap, business, corporate, creative, management, minimal, modern, html5, responsive">
+    <meta name="author" content="Dreamguys - Bootstrap Admin Template">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Ayotola & Sons</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="{%static 'img/lgsm.png' %}">
+    <link rel="stylesheet" href="{%static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{%static 'css/animate.css' %}">
+
+    <link rel="stylesheet" href="{%static 'css/dataTables.bootstrap4.min.css' %}">
+
+    <link rel="stylesheet" href="{%static 'plugins/fontawesome/css/fontawesome.min.css' %}">
+    <link rel="stylesheet" href="{%static 'plugins/fontawesome/css/all.min.css' %}">
+
+    <link rel="stylesheet" href="{%static 'css/style.css' %}">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css">
+
+    
+</head>
+
+<body>
+    <div id="global-loader">
+        <div class="whirly-loader"> </div>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="header">
+
+            <div class="header-left active">
+                <a href="{% url 'dashboard' %}" class="logo">
+                    <div class="text-logo">
+                        <span class="logo-line-1">AYOTOLA</span>
+                        <span class="logo-line-2">& SONS</span>
+                    </div>                </a>
+                <a href="" class="logo-small">
+                    <img src="{% static 'img/lgsm.png' %}" alt="">
+                </a>
+                <a id="toggle_btn" href="javascript:void(0);">
+                </a>
+            </div>
+
+            <a id="mobile_btn" class="mobile_btn" href="#sidebar">
+                <span class="bar-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </a>
+
+            <ul class="nav user-menu">
+                {% if user.is_authenticated %}
+                    <li class="nav-item user-info">
+                        <span class="welcome-text">Hello, {{ user.username }}!</span>
+                        <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-button">
+                                <img src="{% static 'img/icons/log-out.svg' %}" alt="Logout" class="logout-icon">
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a href="{% url 'login' %}" class="login-button">Login</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-inner slimscroll">
+                <div id="sidebar-menu" class="sidebar-menu">
+                    <ul>
+                        <li class="active">
+                            <a href="{% url 'dashboard' %}"><img src="{%static 'img/icons/dashboard.svg' %}" alt="img"><span>
+                                        Dashboard</span> </a>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/product.svg' %}" alt="img"><span>
+                                        Product</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'motorcycle_list' %}">Product List</a></li>
+                                <li><a href="{% url 'motorcycle_create' %}">Add New Product</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/sales1.svg' %}" alt="img"><span>
+                                        Sales</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'sale_list' %}">Sales List</a></li> 
+                                <li><a href="{% url 'sale_create' %}">Add New Sale</a></li> 
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/purchase1.svg' %}" alt="img"><span>
+                                        Payments</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'payment_list' %}">Payment List</a></li> 
+                                <li><a href="{% url 'payment_create' %}">Add New Payment</a></li>
+
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/delivery.svg' %}" alt="img"><span>
+                                        Deliveries</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'delivery_list' %}">Delivery List</a></li>
+                                <li><a href="{% url 'delivery_create' %}">Add New Delivery</a></li>
+
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/expense1.svg' %}" alt="img"><span>
+                                        Deposits</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'deposit_list' %}">Deposit List</a></li>
+                                <li><a href="{% url 'deposit_create' %}">Add New Deposit</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/expense1.svg' %}" alt="img"><span>
+                                        Withdrawals</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'withdrawal_list' %}">Withdrawal List</a></li>
+                                <li><a href="{% url 'withdrawal_create' %}">Add New Withdrawal</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/loan.svg' %}" alt="img"><span>
+                                        Loans</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'loan_list' %}">Loan List</a></li>
+                                <li><a href="{% url 'loan_create' %}">Add New Loan</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/loan.svg' %}" alt="img"><span>
+                                        Loan Repayments</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'loan_repayment_list' %}">Loan Repayment List</a></li>
+                                <li><a href="{% url 'loan_repayment_create' %}">Add New Repayment</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/product.svg' %}" alt="img"><span>
+                                        Inventory</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'inventory_list'%}">Inventory List</a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/users1.svg' %}" alt="img"><span>
+                                        People</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="{% url 'customer_list' %}">Customer List</a></li>
+                                <li><a href="{% url 'supplier_list' %}">Supplier List</a></li>
+                                <li><a href="{% url 'customer_create' %}">Add New Customer </a></li>
+                                <li><a href="{% url 'supplier_create' %}">Add New Supplier </a></li>
+                            </ul>
+                        </li>
+                        <li class="submenu">
+                            <a href="javascript:void(0);"><img src="{%static 'img/icons/time.svg' %}" alt="img"><span>
+                                        Report</span> <span class="menu-arrow"></span></a>
+                            <ul>
+                                <li><a href="purchaseorderreport.html">Supplier Payments Report</a></li> 
+                                <li><a href="purchaseorderreport.html">Supplier Delivery Report</a></li> 
+                                <li><a href="inventoryreport.html">Inventory Report</a></li> 
+                                <li><a href="inventoryreport.html">Inventory Transaction Report</a></li> 
+                                <li><a href="salesreport.html">Sales Report</a></li> 
+                                <li><a href="invoicereport.html">Deposit Report</a></li> 
+                                <li><a href="purchasereport.html">Withdrawal Report</a></li> 
+                                <li><a href="supplierreport.html">Loan Report</a></li> 
+                                <li><a href="customerreport.html">Loan Payment Report</a></li> 
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-wrapper">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <style>
+                /* Add this to your main CSS file */
+        .logo .text-logo {
+            display: flex;          /* Allows easy centering of text lines */
+            flex-direction: column; /* Stacks text lines vertically */
+            align-items: flex-end;    /* Centers text lines horizontally */
+            justify-content: center;/* Centers text lines vertically (if needed, depends on parent height) */
+            font-family: 'Arial', sans-serif; /* CHOOSE A FONT that matches your image */
+            text-decoration: none;  /* Removes underline from the link */
+            /* padding: 5px 0;         Add some padding if needed */
+            padding: 15px 0 5px 0; /* Example: 15px top, 0 right, 5px bottom, 0 left */
+            line-height: 1;       /* Adjust line spacing */
+        }
+
+        .logo .text-logo .logo-line-1 {
+            font-size: 35px;        /* Adjust to match "AYOTOLA" in your image */
+            font-weight: bold;      /* If "AYOTOLA" is bold */
+            color: #030202;            /* Adjust to match text color (e.g., dark gray) */
+            letter-spacing: 1px;    /* Adjust letter spacing if needed */
+            text-transform: uppercase; /* If the text is uppercase */
+        }
+
+        .logo .text-logo .logo-line-2 {
+            font-size: 22px;        /* Adjust to match "& SONS" in your image */
+            font-weight: normal;    /* If "& SONS" is not bold */
+            color: #db3131;            /* Adjust to match text color */
+            text-transform: lowercase; /* If the text is uppercase */
+        }
+
+        /* Optional: Ensure the link itself behaves well with the text logo */
+        a.logo {
+            display: inline-block; /* Or flex, depending on your layout */
+            text-decoration: none;
+        }
+
+        /* Enhanced User Menu Styling */
+        .nav.user-menu {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            padding: 15px 20px 0 0; /* Add padding: top right bottom left */
+            list-style: none;
+        }
+
+        .nav.user-menu .nav-item {
+            display: flex;
+            align-items: center;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .welcome-text {
+            color: #333333 !important; /* Make sure the color shows with !important */
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        /* Improved Logout Button - Orange/Amber color like send button */
+        .logout-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ff8c42, #ff7a28); /* Orange/amber gradient */
+            color: white !important; /* Ensure white text */
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(255, 140, 66, 0.2);
+        }
+
+        .logout-button:hover {
+            background: linear-gradient(135deg, #ff7a28, #ff6914); /* Darker orange on hover */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 140, 66, 0.3);
+            color: white !important; /* Keep white text on hover */
+        }
+
+        .logout-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(255, 140, 66, 0.2); /* Updated shadow color */
+        }
+
+        .logout-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.2); /* Updated focus color */
+        }
+
+        .logout-icon {
+            width: 16px;
+            height: 16px;
+            filter: brightness(0) invert(1); /* Makes the icon white */
+        }
+
+        /* Login Button (for consistency) - also orange theme */
+        .login-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ff8c42, #ff7a28); /* Match logout button */
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(255, 140, 66, 0.2);
+        }
+
+        .login-button:hover {
+            background: linear-gradient(135deg, #ff7a28, #ff6914);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255, 140, 66, 0.3);
+            color: white !important;
+            text-decoration: none;
+        }
+
+        /* Responsive adjustments
+        @media (max-width: 768px) {
+            .welcome-text {
+                font-size: 12px;
+                margin-right: 6px;
+            }
+            
+            .logout-button,
+            .login-button {
+                padding: 6px 12px;
+                font-size: 12px;
+                gap: 4px;
+            }
+            
+            .logout-icon {
+                width: 14px;
+                height: 14px;
+            }
+        } */
+
+                /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: relative;
+            }
+            
+            .header-left {
+                flex: 0 0 auto;
+            }
+            
+            .nav.user-menu {
+                position: absolute;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            
+            .logo .text-logo {
+                text-align: center;
+                align-items: center;
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: auto;
+                z-index: 1;
+            }
+
+            .header-left {
+                flex: 0 0 auto;
+                position: relative;
+            }
+
+            .header-left .logo {
+                position: static;
+                width: 100vw;
+                display: flex;
+                justify-content: center;
+            }
+            
+            .logo .text-logo .logo-line-1 {
+                font-size: 28px;
+            }
+            
+            .logo .text-logo .logo-line-2 {
+                font-size: 18px;
+            }
+            
+            .welcome-text {
+                font-size: 12px;
+                margin-right: 6px;
+            }
+            
+            .logout-button,
+            .login-button {
+                padding: 6px 12px;
+                font-size: 12px;
+                gap: 4px;
+            }
+            
+            .logout-icon {
+                width: 14px;
+                height: 14px;
+            }
+        }
+
+    </style>
+    <script src="{%static 'js/jquery-3.6.0.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+
+
+    <script src="{%static 'js/feather.min.js' %}"></script>
+
+    <script src="{%static 'js/jquery.slimscroll.min.js' %}"></script>
+
+    <script src="{%static 'js/jquery.dataTables.min.js' %}"></script>
+    <script src="{%static 'js/dataTables.bootstrap4.min.js' %}"></script>
+
+    <script src="{%static 'js/bootstrap.bundle.min.js' %}"></script>
+
+    <script src="{%static 'js/script.js' %}"></script>
+</body>
+
+</html>

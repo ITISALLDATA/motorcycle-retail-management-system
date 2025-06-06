@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div class="page-title">
+            {# The 'action' variable from the view is used for dynamic title #}
+            <h4>{% if edit_mode %}Edit{% else %}Add{% endif %} Deposit</h4>
+            <h6>{% if edit_mode %}Edit{% else %}Add{% endif %} deposit details</h6>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" novalidate> {# Add novalidate to prevent browser's default validation #}
+                {% csrf_token %}
+
+                {# Display non-field errors (e.g., from clean() method if any were added) #}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+
+                    {# Customer Field #}
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="{{ form.customer.id_for_label }}">Choose Customer</label>
+                            {{ form.customer }}
+                            {# Display field-specific errors #}
+                            {% if form.customer.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.customer.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Deposit Amount Field #}
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="{{ form.deposit_amount.id_for_label }}">Deposit Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <svg fill="#363030" width="20px" height="20px" viewBox="0 0 24 24" id="naira" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color" stroke="#363030"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path id="primary" d="M20,13H18V11h2a1,1,0,0,0,0-2H18V3a1,1,0,0,0-2,0V9H11.48L7.87,2.51A1,1,0,0,0,6,3V9H4a1,1,0,0,0,0,2H6v2H4a1,1,0,0,0,0,2H6v6a1,1,0,0,0,2,0V15h4.52l3.61,6.49A1,1,0,0,0,17,22a1.07,1.07,0,0,0,.25,0A1,1,0,0,0,18,21V15h2a1,1,0,0,0,0-2Zm-4-2v2H13.7l-1.11-2ZM8,6.86,9.19,9H8ZM8,13V11h2.3l1.11,2Zm8,4.14L14.81,15H16Z" style="fill: #363030;"></path></g></svg>
+                                </span>
+                                {{ form.deposit_amount }}
+                                {# Display field-specific errors #}
+                                {% if form.deposit_amount.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.deposit_amount.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Deposit Date Field #}
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="{{ form.deposit_date.id_for_label }}">Deposit Date</label>
+                            {{ form.deposit_date }}
+                            {# Display field-specific errors #}
+                            {% if form.deposit_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.deposit_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Deposit Type Field #}
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="{{ form.deposit_type.id_for_label }}">Deposit Type</label>
+                            {{ form.deposit_type }}
+                            {# Display field-specific errors #}
+                            {% if form.deposit_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.deposit_type.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Transaction Note Field #}
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label for="{{ form.transaction_note.id_for_label }}">Transaction Note</label>
+                            {{ form.transaction_note }}
+                            {# Display field-specific errors #}
+                            {% if form.transaction_note.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.transaction_note.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Submit and Cancel Buttons #}
+                    <div class="col-lg-12">
+                        <button type="submit" class="btn btn-submit me-2">
+                            {# Use edit_mode for button text #}
+                            {% if edit_mode %}Update{% else %}Add{% endif %} Deposit
+                        </button>
+                        <a href="{% url 'deposit_list' %}" class="btn btn-cancel">Cancel</a>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,1527 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <!-- Modern Header Section -->
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                    <line x1="1" y1="10" x2="23" y2="10"/>
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">{{ title }}</h1>
+                <p class="page-subtitle">
+                    {% if delivery %}Update existing delivery details{% else %}Create a new delivery record{% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'payment_list' %}" class="btn-secondary-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form method="post" class="modern-form" novalidate>
+            {% csrf_token %}
+            
+            <!-- Delivery Details Card -->
+            <div class="form-card">
+                <div class="card-header">
+                    <h3 class="card-title">Delivery Information</h3>
+                    <p class="card-subtitle">Enter the basic delivery details</p>
+                </div>
+                <div class="card-content">
+                    <div class="form-grid">
+
+                        <div class="form-field {% if form.payment.errors %}has-error{% endif %}">
+                            <label class="form-label">Associated Payment *</label>
+                            <div class="input-wrapper">
+                                {{ form.payment }}
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.payment.errors %}
+                                <div class="error-message">
+                                    {% for error in form.payment.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-field {% if form.delivery_date.errors %}has-error{% endif %}">
+                            <label class="form-label">Delivery Date *</label>
+                            <div class="input-wrapper">
+                                {{ form.delivery_date }}
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="16" y1="2" x2="16" y2="6"/>
+                                        <line x1="8" y1="2" x2="8" y2="6"/>
+                                        <line x1="3" y1="10" x2="21" y2="10"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.delivery_date.errors %}
+                                <div class="error-message">
+                                    {% for error in form.delivery_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field {% if form.remarks.errors %}has-error{% endif %}">
+                            <label class="form-label">Remarks</label>
+                            <div class="input-wrapper">
+                                {{ form.remarks }}
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 20h9"/>
+                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            {% if form.remarks.errors %}
+                                <div class="error-message">
+                                    {% for error in form.remarks.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- <div class="form-field {% if form.remarks.errors %}has-error{% endif %}">
+                            <label class="form-label">Remarks</label>
+                            <div class="textarea-wrapper">
+                                {{ form.remarks }}
+                            </div>
+                            {% if form.remarks.errors %}
+                                <div class="error-message">
+                                    {% for error in form.remarks.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Items Card -->
+            <div class="form-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <h3 class="card-title">Delivery Items</h3>
+                        <p class="card-subtitle">Add items covered by this delivery</p>
+                    </div>
+                    <button type="button" class="btn-primary" id="add-item-button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Add Item
+                    </button>
+                </div>
+                <div class="card-content">
+                    <div id="delivery-items-formset" class="items-container">
+                        {{ formset.management_form }}
+                        {% for item_form in formset %}
+                        <div class="delivery-item-row" data-formset-prefix="{{ item_form.prefix }}">
+                            <!-- Hidden fields for Django formset -->
+                            <div class="hidden-fields">
+                                {% if item_form.instance.pk %}{{ item_form.id }}{% endif %}
+                                {{ item_form.DELETE }}
+                            </div>
+                            
+                            {# **** START: ADDED BLOCK FOR ITEM_FORM NON-FIELD ERRORS **** #}
+                            {% if item_form.non_field_errors %}
+                            <div class="alert alert-error item-form-non-field-errors" style="margin: 10px 15px; padding: 10px; border-radius: var(--border-radius-sm);">
+                                {% for error in item_form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {# **** END: ADDED BLOCK FOR ITEM_FORM NON-FIELD ERRORS **** #}
+                            <div class="item-content">
+                                <div class="item-header">
+                                    <div class="item-number">
+                                        <span class="item-badge">Item #<span class="item-counter">1</span></span>
+                                    </div>
+                                    <button type="button" class="btn-remove-item" data-form-id="{{ item_form.prefix }}" title="Remove this item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3,6 5,6 21,6"/>
+                                            <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                            <line x1="10" y1="11" x2="10" y2="17"/>
+                                            <line x1="14" y1="11" x2="14" y2="17"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="item-fields">
+
+                                    <div class="form-field {% if item_form.motorcycle_model.errors %}has-error{% endif %}">
+                                        <label class="form-label">Motorcycle Model *</label>
+                                        <div class="input-wrapper">
+                                            {{ item_form.motorcycle_model }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <circle cx="12" cy="12" r="2"/>
+                                                    <path d="M12 1v6m0 6v6"/>
+                                                    <path d="m21 12-6 0m-6 0-6 0"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {% if item_form.motorcycle_model.errors %}
+                                            <div class="error-message">
+                                                {% for error in item_form.motorcycle_model.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-field {% if item_form.delivered_quantity.errors %}has-error{% endif %}">
+                                        <label class="form-label">Delivered Quantity *</label>
+                                        <div class="input-wrapper">
+                                            {{ item_form.delivered_quantity }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {% if item_form.delivered_quantity.errors %}
+                                            <div class="error-message">
+                                                {% for error in item_form.delivered_quantity.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="form-field {% if item_form.delivery_remarks.errors %}has-error{% endif %}">
+                                        <label class="form-label">Remarks</label>
+                                        <div class="input-wrapper">
+                                            {{ item_form.delivery_remarks }}
+                                            <div class="input-icon">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 20h9"/>
+                                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {% if item_form.delivery_remarks.errors %}
+                                            <div class="error-message">
+                                                {% for error in item_form.delivery_remarks.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <div class="empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                            </svg>
+                        </div>
+                        <h4>No delivery items added</h4>
+                        <p>Click "Add Item" to start adding items to this delivery</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Errors -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% if formset.non_form_errors %}
+                <div class="alert alert-error">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    {{ formset.non_form_errors }}
+                </div>
+            {% endif %}
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary btn-large">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                    {% if delivery %}Update Delivery{% else %}Create Delivery{% endif %}
+                </button>
+                <a href="{% url 'delivery_list' %}" class="btn-secondary btn-large">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary-color: #6b7280;
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --transition: all 0.2s ease-in-out;
+}
+
+.content {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+}
+
+/* Modern Header */
+.page-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--gray-600);
+    margin: 0.25rem 0 0 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+/* Form Container */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.modern-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Form Cards */
+.form-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    margin: 0.25rem 0 0 0;
+}
+
+.card-content {
+    padding: 2rem;
+}
+
+/* Form Grid */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-field-full {
+    grid-column: 1 / -1;
+}
+
+/* Form Fields */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin: 0;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-wrapper input,
+.input-wrapper select {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    color: var(--gray-900);
+    background: white;
+    transition: var(--transition);
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.input-icon {
+    position: absolute;
+    left: 0.75rem;
+    color: var(--gray-400);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.textarea-wrapper textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    color: var(--gray-900);
+    background: white;
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.textarea-wrapper textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+/* Error Messages */
+.error-message {
+    font-size: 0.75rem;
+    color: var(--error-color);
+    margin-top: 0.25rem;
+}
+
+/* Delivery Items */
+.items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.delivery-item-row {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius-sm);
+    background: var(--gray-50);
+    transition: var(--transition);
+}
+
+.delivery-item-row:hover {
+    border-color: var(--gray-300);
+    box-shadow: var(--shadow-sm);
+}
+
+.hidden-fields {
+    display: none;
+}
+
+.item-content {
+    padding: 1.5rem;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.item-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.btn-remove-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--error-color);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-remove-item:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+.item-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray-500);
+}
+
+.empty-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Buttons */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background: var(--gray-200);
+    border-color: var(--gray-400);
+}
+
+.btn-secondary-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    color: var(--gray-600);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn-secondary-outline:hover {
+    background: var(--gray-50);
+    color: var(--gray-900);
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+}
+
+/* Alerts */
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.alert-error {
+    background: #fef2f2;
+    color: var(--error-color);
+    border: 1px solid #fecaca;
+}
+
+.form-field .error-message {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--error-color);
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.form-field.has-error .input-wrapper input,
+.form-field.has-error .input-wrapper select,
+.form-field.has-error .textarea-wrapper textarea {
+    border-color: var(--error-color);
+    box-shadow: 0 0 0 3px rgb(239 68 68 / 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem 0.5rem;
+    }
+    
+    .page-header-modern {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+        padding: 1rem;
+    }
+    
+    .card-content {
+        padding: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .item-fields {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .btn-large {
+        justify-content: center;
+    }
+}
+
+/* Animation for new items */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delivery-item-row.new-item {
+    animation: slideIn 0.3s ease-out;
+}
+</style>
+
+<!-- <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addItemButton = document.getElementById('add-item-button');
+    const formsetContainer = document.getElementById('delivery-items-formset');
+    const emptyState = document.getElementById('empty-state');
+    const totalFormsInput = document.querySelector('input[name="{{ formset.management_form.prefix }}-TOTAL_FORMS"]');
+    
+    let emptyFormTemplate = null;
+    let itemCounter = 0;
+
+    // Initialize
+    function init() {
+        // Create empty form template
+        const existingRows = formsetContainer.querySelectorAll('.delivery-item-row');
+        if (existingRows.length > 0) {
+            emptyFormTemplate = existingRows[0].cloneNode(true);
+            clearFormTemplate(emptyFormTemplate);
+        }
+
+        // Update item counters
+        updateItemCounters();
+        
+        // Check if we should show empty state
+        checkEmptyState();
+        
+        // Attach existing remove listeners
+        attachAllRemoveListeners();
+    }
+
+    function clearFormTemplate(template) {
+        template.querySelectorAll('input, select, textarea').forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+    }
+
+    function updateItemCounters() {
+        const visibleRows = getVisibleRows();
+        visibleRows.forEach((row, index) => {
+            const counter = row.querySelector('.item-counter');
+            if (counter) {
+                counter.textContent = index + 1;
+            }
+        });
+        itemCounter = visibleRows.length;
+    }
+
+    function getVisibleRows() {
+        return Array.from(formsetContainer.querySelectorAll('.delivery-item-row')).filter(row => 
+            row.style.display !== 'none'
+        );
+    }
+
+    function updateFormsetIndices() {
+        const visibleRows = getVisibleRows();
+        
+        visibleRows.forEach((row, index) => {
+            row.setAttribute('data-formset-prefix', `form-${index}`);
+            row.querySelectorAll('[name]').forEach(input => {
+                const oldName = input.name;
+                const newName = oldName.replace(/form-\d+/, `form-${index}`);
+                input.name = newName;
+                input.id = `id_${newName}`;
+            });
+            
+            const removeButton = row.querySelector('.btn-remove-item');
+            if (removeButton) {
+                removeButton.setAttribute('data-form-id', `form-${index}`);
+            }
+        });
+        
+        totalFormsInput.value = visibleRows.length;
+        updateItemCounters();
+    }
+
+    function checkEmptyState() {
+        const visibleRows = getVisibleRows();
+        if (visibleRows.length === 0) {
+            emptyState.style.display = 'block';
+            formsetContainer.style.display = 'none';
+        } else {
+            emptyState.style.display = 'none';
+            formsetContainer.style.display = 'flex';
+        }
+    }
+
+    function addNewItem() {
+        if (!emptyFormTemplate) return;
+        
+        const newForm = emptyFormTemplate.cloneNode(true);
+        const currentTotalForms = parseInt(totalFormsInput.value) || 0;
+        const newIndex = currentTotalForms;
+
+        // Update form attributes
+        newForm.setAttribute('data-formset-prefix', `form-${newIndex}`);
+        newForm.querySelectorAll('[name]').forEach(input => {
+            const oldName = input.name;
+            const newName = oldName.replace(/form-\d+/, `form-${newIndex}`);
+            input.name = newName;
+            input.id = `id_${newName}`;
+            
+            // Clear values
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+
+        // Add animation class
+        newForm.classList.add('new-item');
+        newForm.style.display = '';
+        
+        // Append to container
+        formsetContainer.appendChild(newForm);
+        
+        // Update form management
+        totalFormsInput.value = newIndex + 1;
+        updateItemCounters();
+        checkEmptyState();
+        
+        // Attach remove listener
+        attachRemoveListener(newForm.querySelector('.btn-remove-item'));
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            newForm.classList.remove('new-item');
+        }, 300);
+        
+        // Focus on first input of new item
+        const firstInput = newForm.querySelector('input, select');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }
+
+    function attachRemoveListener(button) {
+        if (!button) return;
+        
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const row = this.closest('.delivery-item-row');
+            const deleteCheckbox = row.querySelector('input[name*="DELETE"]');
+            
+            // Add confirmation for better UX
+            // if (!confirm('Are you sure you want to remove this item?')) {
+            //     return;
+            // }
+            
+            if (deleteCheckbox) {
+                // For existing items, mark for deletion and hide
+                deleteCheckbox.checked = true;
+                row.style.display = 'none';
+            } else {
+                // For new items, remove from DOM with animation
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-100%)';
+                setTimeout(() => {
+                    row.remove();
+                    updateFormsetIndices();
+                    checkEmptyState();
+                }, 200);
+                return;
+            }
+            
+            updateFormsetIndices();
+            checkEmptyState();
+        });
+    }
+
+    function attachAllRemoveListeners() {
+        document.querySelectorAll('.btn-remove-item').forEach(button => {
+            // Remove existing listeners to prevent duplicates
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            attachRemoveListener(newButton);
+        });
+    }
+
+    // Event Listeners
+    addItemButton.addEventListener('click', addNewItem);
+
+    // Initialize on page load
+    init();
+
+    // Handle initial empty state
+    const firstRow = formsetContainer.querySelector('.delivery-item-row');
+    if (firstRow) {
+        const hasAnyData = Array.from(firstRow.querySelectorAll('input, select, textarea'))
+            .some(input => {
+                if (input.type === 'checkbox') return input.checked;
+                return input.value && input.value.trim() !== '';
+            });
+        
+        const isNewForm = !firstRow.querySelector('input[name*="id"]')?.value;
+        
+        if (!hasAnyData && isNewForm && getVisibleRows().length === 1) {
+            firstRow.style.display = 'none';
+            totalFormsInput.value = '0';
+            checkEmptyState();
+        }
+    }
+
+    // // Form validation enhancement
+    // const form = document.querySelector('.modern-form');
+    // form.addEventListener('submit', function(e) {
+    //     let hasErrors = false;
+    //     const requiredFields = form.querySelectorAll('input[required], select[required]');
+        
+    //     requiredFields.forEach(field => {
+    //         const wrapper = field.closest('.form-field');
+    //         const existingError = wrapper.querySelector('.validation-error');
+            
+    //         if (existingError) {
+    //             existingError.remove();
+    //         }
+            
+    //         if (!field.value.trim()) {
+    //             hasErrors = true;
+    //             const errorDiv = document.createElement('div');
+    //             errorDiv.className = 'validation-error error-message';
+    //             errorDiv.textContent = 'This field is required';
+    //             wrapper.appendChild(errorDiv);
+                
+    //             field.focus();
+    //         }
+    //     });
+        
+    //     if (hasErrors) {
+    //         e.preventDefault();
+    //         // Scroll to first error
+    //         const firstError = form.querySelector('.validation-error');
+    //         if (firstError) {
+    //             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    //         }
+    //     }
+    // });
+
+    // Form validation enhancement - FIXED VERSION
+    const form = document.querySelector('.modern-form');
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        
+        // Only validate required fields in visible rows
+        const visibleRows = getVisibleRows();
+        const requiredFields = [];
+        
+        // Get required fields from visible formset rows
+        visibleRows.forEach(row => {
+            const rowRequiredFields = row.querySelectorAll('input[required], select[required]');
+            requiredFields.push(...rowRequiredFields);
+        });
+        
+        // Also get required fields from the main form (not in formset)
+        const mainFormRequiredFields = form.querySelectorAll('input[required], select[required]');
+        mainFormRequiredFields.forEach(field => {
+            // Only add if it's not inside a delivery-item-row
+            if (!field.closest('.delivery-item-row')) {
+                requiredFields.push(field);
+            }
+        });
+        
+        requiredFields.forEach(field => {
+            const wrapper = field.closest('.form-field');
+            if (!wrapper) return; // Skip if no wrapper found
+            
+            const existingError = wrapper.querySelector('.validation-error');
+            
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            if (!field.value.trim()) {
+                hasErrors = true;
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'validation-error error-message';
+                errorDiv.textContent = 'This field is required';
+                wrapper.appendChild(errorDiv);
+                
+                if (!hasErrors || field === requiredFields[0]) {
+                    field.focus();
+                }
+            }
+        });
+        
+        if (hasErrors) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = form.querySelector('.validation-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+    
+    // Auto-save draft functionality (optional enhancement)
+    let saveTimeout;
+    const formInputs = form.querySelectorAll('input, select, textarea');
+    
+    formInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                // Could implement auto-save to localStorage here
+                console.log('Auto-saving draft...');
+            }, 2000);
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + Enter to submit form
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            form.submit();
+        }
+        
+        // Ctrl/Cmd + I to add new item
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+            e.preventDefault();
+            addNewItem();
+        }
+    });
+
+    // Add tooltips for better UX
+    const tooltipElements = document.querySelectorAll('[title]');
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = this.getAttribute('title');
+            tooltip.style.cssText = `
+                position: absolute;
+                background: var(--gray-800);
+                color: white;
+                padding: 0.5rem;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                z-index: 1000;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.2s;
+            `;
+            
+            document.body.appendChild(tooltip);
+            
+            const rect = this.getBoundingClientRect();
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 5 + 'px';
+            
+            setTimeout(() => tooltip.style.opacity = '1', 10);
+            
+            this.addEventListener('mouseleave', function() {
+                if (tooltip.parentNode) {
+                    tooltip.remove();
+                }
+            }, { once: true });
+        });
+    });
+});
+</script> -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const addItemButton = document.getElementById('add-item-button');
+    const formsetContainer = document.getElementById('delivery-items-formset');
+    const emptyState = document.getElementById('empty-state');
+    
+    // Get the correct formset prefix from Django
+    const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+    const formsetPrefix = totalFormsInput ? totalFormsInput.name.replace('-TOTAL_FORMS', '') : 'delivery_items';
+    
+    let formIndex = 0;
+
+    // Initialize
+    function init() {
+        console.log('Initializing delivery form...');
+        console.log('Formset prefix:', formsetPrefix);
+        
+        // Count existing forms and set the starting index
+        const existingRows = formsetContainer.querySelectorAll('.delivery-item-row');
+        formIndex = existingRows.length;
+        
+        // Update total forms to match existing rows
+        if (totalFormsInput) {
+            totalFormsInput.value = formIndex;
+        }
+        
+        // Update item counters
+        updateItemCounters();
+        
+        // Check if we should show empty state
+        checkEmptyState();
+        
+        // Attach existing remove listeners
+        attachAllRemoveListeners();
+        
+        console.log(`Initialized with ${formIndex} forms`);
+    }
+
+    function updateItemCounters() {
+        const visibleRows = getVisibleRows();
+        visibleRows.forEach((row, index) => {
+            const counter = row.querySelector('.item-counter');
+            if (counter) {
+                counter.textContent = index + 1;
+            }
+        });
+    }
+
+    function getVisibleRows() {
+        return Array.from(formsetContainer.querySelectorAll('.delivery-item-row')).filter(row => {
+            const deleteCheckbox = row.querySelector(`input[name*="DELETE"]`);
+            return row.style.display !== 'none' && (!deleteCheckbox || !deleteCheckbox.checked);
+        });
+    }
+
+    function checkEmptyState() {
+        const visibleRows = getVisibleRows();
+        if (visibleRows.length === 0) {
+            emptyState.style.display = 'block';
+            formsetContainer.style.display = 'none';
+        } else {
+            emptyState.style.display = 'none';
+            formsetContainer.style.display = 'flex';
+        }
+    }
+
+    function createEmptyFormHtml(index) {
+        // Use the correct formset prefix from Django
+        const prefix = `${formsetPrefix}-${index}`;
+        
+        return `
+            <div class="delivery-item-row" data-formset-prefix="${prefix}">
+                <!-- Hidden fields for Django formset -->
+                <div class="hidden-fields">
+                    <input type="hidden" name="${prefix}-id" id="id_${prefix}-id">
+                    <input type="hidden" name="${prefix}-DELETE" id="id_${prefix}-DELETE">
+                </div>
+                
+                <div class="item-content">
+                    <div class="item-header">
+                        <div class="item-number">
+                            <span class="item-badge">Item #<span class="item-counter">${index + 1}</span></span>
+                        </div>
+                        <button type="button" class="btn-remove-item" data-form-id="${prefix}" title="Remove this item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3,6 5,6 21,6"/>
+                                <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="item-fields">
+                        <div class="form-field">
+                            <label class="form-label">Motorcycle Model *</label>
+                            <div class="input-wrapper">
+                                <select name="${prefix}-motorcycle_model" id="id_${prefix}-motorcycle_model" required>
+                                    <option value="">---------</option>
+                                    <!-- Options will be populated by copying from existing form -->
+                                </select>
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="2"/>
+                                        <path d="M12 1v6m0 6v6"/>
+                                        <path d="m21 12-6 0m-6 0-6 0"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">Delivered Quantity *</label>
+                            <div class="input-wrapper">
+                                <input type="number" name="${prefix}-delivered_quantity" id="id_${prefix}-delivered_quantity" required min="1">
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">Remarks</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="${prefix}-delivery_remarks" id="id_${prefix}-delivery_remarks">
+                                <div class="input-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 20h9"/>
+                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function addNewItem() {
+        console.log(`Adding new item with index: ${formIndex}`);
+        
+        // Create new form HTML
+        const newFormHtml = createEmptyFormHtml(formIndex);
+        
+        // Create temporary container to parse HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newFormHtml;
+        const newForm = tempDiv.firstElementChild;
+        
+        // Copy select options from existing form if available
+        const existingForm = formsetContainer.querySelector('.delivery-item-row');
+        if (existingForm) {
+            const existingSelect = existingForm.querySelector('select[name*="motorcycle_model"]');
+            const newSelect = newForm.querySelector('select[name*="motorcycle_model"]');
+            
+            if (existingSelect && newSelect) {
+                newSelect.innerHTML = existingSelect.innerHTML;
+            }
+        }
+        
+        // Add animation class
+        newForm.classList.add('new-item');
+        
+        // Append to container
+        formsetContainer.appendChild(newForm);
+        
+        // Update formset management
+        formIndex++;
+        if (totalFormsInput) {
+            totalFormsInput.value = formIndex;
+            console.log(`Updated TOTAL_FORMS to: ${formIndex}`);
+        }
+        
+        updateItemCounters();
+        checkEmptyState();
+        
+        // Attach remove listener
+        attachRemoveListener(newForm.querySelector('.btn-remove-item'));
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            newForm.classList.remove('new-item');
+        }, 300);
+        
+        // Focus on first input of new item
+        const firstInput = newForm.querySelector('select, input[type="number"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+        
+        console.log(`Added new item. Total forms now: ${formIndex}`);
+    }
+
+    function attachRemoveListener(button) {
+        if (!button) return;
+        
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const row = this.closest('.delivery-item-row');
+            const deleteCheckbox = row.querySelector('input[name*="DELETE"]');
+            const idField = row.querySelector('input[name*="-id"]');
+            
+            console.log('Removing item:', row.getAttribute('data-formset-prefix'));
+            
+            if (idField && idField.value) {
+                // For existing items (have ID), mark for deletion and hide
+                console.log('Marking existing item for deletion');
+                deleteCheckbox.checked = true;
+                row.style.display = 'none';
+            } else {
+                // For new items (no ID), remove from DOM
+                console.log('Removing new item from DOM');
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-100%)';
+                setTimeout(() => {
+                    row.remove();
+                    updateItemCounters();
+                    checkEmptyState();
+                }, 200);
+                return;
+            }
+            
+            updateItemCounters();
+            checkEmptyState();
+        });
+    }
+
+    function attachAllRemoveListeners() {
+        document.querySelectorAll('.btn-remove-item').forEach(button => {
+            // Remove existing listeners to prevent duplicates
+            const newButton = button.cloneNode(true);
+            button.parentNode.replaceChild(newButton, button);
+            attachRemoveListener(newButton);
+        });
+    }
+
+    // Event Listeners
+    addItemButton.addEventListener('click', addNewItem);
+
+    // Form submission debugging
+    const form = document.querySelector('.modern-form');
+    form.addEventListener('submit', function(e) {
+        console.log('Form submitting...');
+        console.log('TOTAL_FORMS:', totalFormsInput ? totalFormsInput.value : 'not found');
+        
+        // Log all form data
+        const formData = new FormData(form);
+        console.log('Form data:');
+        for (let [key, value] of formData.entries()) {
+            if (key.includes(formsetPrefix + '-')) {
+                console.log(`${key}: ${value}`);
+            }
+        }
+        
+        // Validate visible items have required fields
+        const visibleRows = getVisibleRows();
+        console.log(`Visible rows: ${visibleRows.length}`);
+        
+        let hasErrors = false;
+        visibleRows.forEach((row, index) => {
+            const prefix = row.getAttribute('data-formset-prefix');
+            const requiredFields = row.querySelectorAll('input[required], select[required]');
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    console.error(`Required field empty: ${field.name}`);
+                    hasErrors = true;
+                }
+            });
+        });
+        
+        if (hasErrors) {
+            console.error('Form has validation errors');
+            e.preventDefault();
+        }
+    });
+
+    // Initialize on page load
+    init();
+
+    // Handle initial empty state for new forms
+    const initialRows = formsetContainer.querySelectorAll('.delivery-item-row');
+    if (initialRows.length === 1) {
+        const firstRow = initialRows[0];
+        const hasAnyData = Array.from(firstRow.querySelectorAll('input:not([type="hidden"]), select, textarea'))
+            .some(input => input.value && input.value.trim() !== '');
+        
+        const idField = firstRow.querySelector('input[name*="-id"]');
+        const isNewForm = !idField || !idField.value;
+        
+        if (!hasAnyData && isNewForm) {
+            firstRow.style.display = 'none';
+            if (totalFormsInput) {
+                totalFormsInput.value = '0';
+            }
+            formIndex = 0;
+            checkEmptyState();
+        }
+    }
+
+    // Form validation enhancement
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        
+        // Only validate required fields in visible rows
+        const visibleRows = getVisibleRows();
+        const requiredFields = [];
+        
+        // Get required fields from visible formset rows
+        visibleRows.forEach(row => {
+            const rowRequiredFields = row.querySelectorAll('input[required], select[required]');
+            requiredFields.push(...rowRequiredFields);
+        });
+        
+        // Also get required fields from the main form (not in formset)
+        const mainFormRequiredFields = form.querySelectorAll('input[required], select[required]');
+        mainFormRequiredFields.forEach(field => {
+            // Only add if it's not inside a delivery-item-row
+            if (!field.closest('.delivery-item-row')) {
+                requiredFields.push(field);
+            }
+        });
+        
+        requiredFields.forEach(field => {
+            const wrapper = field.closest('.form-field');
+            if (!wrapper) return; // Skip if no wrapper found
+            
+            const existingError = wrapper.querySelector('.validation-error');
+            
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            if (!field.value.trim()) {
+                hasErrors = true;
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'validation-error error-message';
+                errorDiv.textContent = 'This field is required';
+                wrapper.appendChild(errorDiv);
+                
+                if (!hasErrors || field === requiredFields[0]) {
+                    field.focus();
+                }
+            }
+        });
+        
+        if (hasErrors) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstError = form.querySelector('.validation-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + Enter to submit form
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            form.submit();
+        }
+        
+        // Ctrl/Cmd + I to add new item
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+            e.preventDefault();
+            addNewItem();
+        }
+    });
+});
+</script>
+{% endblock %}

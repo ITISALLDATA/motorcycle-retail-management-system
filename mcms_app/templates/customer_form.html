@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div class="page-title">
+            <h4>{{ title }}</h4>
+            <h6>{% if edit_mode %}Update customer details{% else %}Add a new customer{% endif %}</h6>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-lg-4 col-sm-4 col-12">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            {{ form.firstname }}
+                            {% if form.firstname.errors %}<div class="text-danger">{{ form.firstname.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-4 col-12">
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            {{ form.lastname }}
+                            {% if form.lastname.errors %}<div class="text-danger">{{ form.lastname.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-4 col-12">
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="text-danger">{{ form.phone.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-12 col-12">
+                        <div class="form-group">
+                            <label>Address</label>
+                            {{ form.address }}
+                            {% if form.address.errors %}<div class="text-danger">{{ form.address.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <button type="submit" class="btn btn-submit me-2">
+                            {% if edit_mode %}Update{% else %}Submit{% endif %}
+                        </button>
+                        <a href="{% url 'customer_list' %}" class="btn btn-cancel">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

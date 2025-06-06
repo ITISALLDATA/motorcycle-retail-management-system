@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div class="page-title">
+            {# The 'action' variable from the view determines the title #}
+            <h4>{{ action }} Loan Repayment</h4>
+            <h6>{{ action }} repayment details for a loan</h6>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" novalidate> {# Add novalidate to prevent browser's default validation #}
+                {% csrf_token %}
+
+                {# Display non-field errors (e.g., from the clean() method in forms.py) #}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+
+                    {# Loan Selection Field #}
+                    <div class="col-lg-6 col-sm-12">
+                        <div class="form-group">
+                            <label for="{{ form.loan.id_for_label }}">Select Loan</label>
+                            {{ form.loan }}
+                            {# Display field-specific errors #}
+                            {% if form.loan.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.loan.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Repayment Amount Field #}
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="{{ form.repayment_amount.id_for_label }}">Repayment Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <svg fill="#363030" width="20px" height="20px" viewBox="0 0 24 24" id="naira" data-name="Flat Color" xmlns="http://www.w3.org/2000/svg" class="icon flat-color" stroke="#363030"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path id="primary" d="M20,13H18V11h2a1,1,0,0,0,0-2H18V3a1,1,0,0,0-2,0V9H11.48L7.87,2.51A1,1,0,0,0,6,3V9H4a1,1,0,0,0,0,2H6v2H4a1,1,0,0,0,0,2H6v6a1,1,0,0,0,2,0V15h4.52l3.61,6.49A1,1,0,0,0,17,22a1.07,1.07,0,0,0,.25,0A1,1,0,0,0,18,21V15h2a1,1,0,0,0,0-2Zm-4-2v2H13.7l-1.11-2ZM8,6.86,9.19,9H8ZM8,13V11h2.3l1.11,2Zm8,4.14L14.81,15H16Z" style="fill: #363030;"></path></g></svg>
+                                </span>
+                                {{ form.repayment_amount }}
+                            </div>
+                            {% if form.repayment_amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.repayment_amount.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Repayment Date Field #}
+                    <div class="col-lg-3 col-sm-6 col-12">
+                        <div class="form-group">
+                            <label for="{{ form.repayment_date.id_for_label }}">Repayment Date</label>
+                            {{ form.repayment_date }}
+                            {# Display field-specific errors #}
+                            {% if form.repayment_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.repayment_date.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Remarks Field #}
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label for="{{ form.remarks.id_for_label }}">Remarks</label>
+                            {{ form.remarks }}
+                            {# Display field-specific errors #}
+                            {% if form.remarks.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.remarks.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# Submit and Cancel Buttons #}
+                    <div class="col-lg-12">
+                        <button type="submit" class="btn btn-submit me-2">
+                            {{ action }} Repayment
+                        </button>
+                        <a href="{% url 'loan_repayment_list' %}" class="btn btn-cancel">Cancel</a>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

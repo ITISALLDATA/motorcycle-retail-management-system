@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Sale Details: {{ sale.sale_reference }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {# Modern Header #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon">
+                <svg width="40px" height="40px" viewBox="0 0 1024 1024" class="icon" version="1.1" xmlns="http://www.w3.org/2000/svg" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M810.666667 277.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 213.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667V170.666667c0 23.466667-57.6 42.666667-128 42.666666zM810.666667 341.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 405.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 469.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 533.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 597.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 661.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 725.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 789.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M810.666667 853.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M682.666667 170.666667a128 42.666667 0 1 0 256 0 128 42.666667 0 1 0-256 0Z" fill="#FFC107"></path><path d="M810.666667 256c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 320c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 384c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 448c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 512c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 576c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 640c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 704c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 768c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM810.666667 832c-59.733333 0-108.8-12.8-123.733334-32-2.133333 4.266667-4.266667 6.4-4.266666 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32z" fill="#FFC107"></path><path d="M213.333333 405.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M213.333333 341.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666zM213.333333 469.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M213.333333 533.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M213.333333 597.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M213.333333 661.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M213.333333 725.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M213.333333 789.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M213.333333 853.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M85.333333 298.666667a128 42.666667 0 1 0 256 0 128 42.666667 0 1 0-256 0Z" fill="#FFC107"></path><path d="M213.333333 384c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32zM213.333333 448c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32zM213.333333 512c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32zM213.333333 576c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32zM213.333333 640c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32zM213.333333 704c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32zM213.333333 768c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32zM213.333333 832c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266666-10.666667-14.933333 19.2-64 32-123.733334 32z" fill="#FFC107"></path><path d="M512 597.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M512 533.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666zM512 661.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M512 725.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M512 789.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M512 853.333333c-70.4 0-128-19.2-128-42.666666v42.666666c0 23.466667 57.6 42.666667 128 42.666667s128-19.2 128-42.666667v-42.666666c0 23.466667-57.6 42.666667-128 42.666666z" fill="#FFA000"></path><path d="M384 490.666667a128 42.666667 0 1 0 256 0 128 42.666667 0 1 0-256 0Z" fill="#FFC107"></path><path d="M512 576c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM512 640c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM512 704c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM512 768c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32zM512 832c-59.733333 0-108.8-12.8-123.733333-32-2.133333 4.266667-4.266667 6.4-4.266667 10.666667 0 23.466667 57.6 42.666667 128 42.666666s128-19.2 128-42.666666c0-4.266667-2.133333-6.4-4.266667-10.666667-14.933333 19.2-64 32-123.733333 32z" fill="#FFC107"></path></g></svg>            </div>
+            <div class="header-text">
+                <h1 class="page-title">Sale Details</h1>
+                <p class="page-subtitle">{{ sale.sale_reference|default:"New Sale" }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'sale_list' %}" class="btn-secondary-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-container row">
+        {# Main Information Card - Taking full width or col-lg-8 if using sidebar #}
+        <div class="main-content col-lg-8 col-md-12">
+            <div class="detail-card">
+                <div class="card-header">
+                    <div class="card-header-content pb-3">
+                        <h2 class="card-title">Sale Information</h2>
+                        <div class="status-badge 
+                            {% if sale.status == 'ACTIVE' %}status-active
+                            {% elif sale.status == 'CANCELLED' %}status-cancelled
+                            {% else %}status-inactive{% endif %}">
+                            {{ sale.get_status_display }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Reference</span>
+                                <span class="detail-value">{{ sale.sale_reference|default:"N/A" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Customer</span>
+                                <span class="detail-value">
+                                    <a href="{% if sale.customer %}{% url 'customer_detail' pk=sale.customer.pk %}{% endif %}">
+                                        {{ sale.customer.name|default:"N/A" }}
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Motorcycle Model</span>
+                                <span class="detail-value">
+                                     <a href="{% if sale.motorcycle %}{% url 'motorcycle_detail' pk=sale.motorcycle.pk %}{% endif %}">
+                                        {{ sale.motorcycle.name|default:"N/A" }} ({{ sale.motorcycle.brand|default:"" }})
+                                    </a>
+                                </span>
+                            </div>
+                           <div class="detail-item">
+                                <span class="detail-label">Sale Date</span>
+                                <span class="detail-value">{{ sale.sale_date|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Engine Number</span>
+                                <span class="detail-value">{{ sale.engine_no }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Chassis Number</span>
+                                <span class="detail-value">{{ sale.chassis_no }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Payment Type</span>
+                                <span class="detail-value">{{ sale.get_payment_type_display }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Final Price</span>
+                                <span class="detail-value highlight-value">₦{{ sale.final_price|floatformat:2|intcomma }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item detail-item-full">
+                            <span class="detail-label">Remarks</span>
+                            <span class="detail-value">{{ sale.remarks|default_if_none:"N/A"|linebreaksbr }}</span>
+                        </div>
+                        <div class="detail-item detail-item-full">
+                            <span class="detail-label">Timestamps</span>
+                            <span class="detail-value text-muted" style="font-size: 0.8rem;">
+                                Recorded: {{ sale.created_at|date:"M d, Y H:i"|default:"N/A" }}
+                                {% if sale.updated_at != sale.created_at %}
+                                    | Last Updated: {{ sale.updated_at|date:"M d, Y H:i"|default:"N/A" }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Action Buttons #}
+            <div class="action-bar">
+                {% if sale.status == 'ACTIVE' %}
+                    <a href="{% url 'sale_edit' pk=sale.pk %}" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                        Edit Sale
+                    </a>
+                    <a href="{% url 'sale_cancel_confirm' pk=sale.pk %}" class="btn btn-danger">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        Cancel Sale
+                    </a>
+                {% else %}
+                    <button class="btn btn-secondary" disabled title="Sale is {{ sale.get_status_display }}">Edit Sale</button>
+                    <button class="btn btn-danger" disabled title="Sale is {{ sale.get_status_display }}">Cancel Sale</button>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Right Sidebar - Related Financial & Inventory Transactions #}
+        <div class="right-sidebar col-lg-4 d-none d-lg-block">
+            <div class="sidebar-content">
+                {% if sale.payment_type == 'DEPOSIT' and related_withdrawals %}
+                <div class="detail-card">
+                    <div class="card-header pb-3"><h2 class="card-title">Associated Withdrawals</h2></div>
+                    <div class="card-body">
+                        <div class="activity-feed">
+                            {% for wd in related_withdrawals %}
+                            <div class="activity-item {% if wd.withdrawal_status == 'cancelled' %}activity-item-cancelled{% endif %}">
+                                <div class="activity-icon {% if wd.withdrawal_status == 'cancelled' %}bg-lightred-icon{% else %}bg-success-icon{% endif %}">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title"><a href="{% url 'withdrawal_detail' pk=wd.pk %}">Withdrawal #{{wd.pk}}</a></div>
+                                    <div class="activity-description">From: <a href="{% url 'deposit_detail' pk=wd.deposit.pk %}">{{ wd.deposit.deposit_reference }}</a></div>
+                                    <div class="activity-meta">
+                                        <span class="activity-date">{{ wd.withdrawal_date|date:"M d, Y" }}</span>
+                                        <span class="activity-amount">₦{{ wd.withdrawal_amount|floatformat:0|intcomma }}</span>
+                                    </div>
+                                     <div class="status-text-{% if wd.withdrawal_status == 'completed' %}active{% elif wd.withdrawal_status == 'cancelled' %}cancelled{% endif %}" style="font-size:0.8em; margin-top:3px;">
+                                        {{ wd.get_withdrawal_status_display }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="empty-text">No withdrawals directly linked to this sale.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if sale.payment_type == 'LOAN' and related_loan %}
+                <div class="detail-card">
+                    <div class="card-header pb-3"><h2 class="card-title">Associated Loan</h2></div>
+                    <div class="card-body">
+                        <div class="activity-feed">
+                            <div class="activity-item {% if related_loan.loan_status == 'cancelled' %}activity-item-cancelled{% endif %}">
+                                <div class="activity-icon {% if related_loan.loan_status == 'cancelled' %}bg-lightred-icon{% elif related_loan.loan_status == 'repaid' %}bg-success-icon{% else %}bg-info-icon{% endif %}">
+                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/><polyline points="12,15 12,11 10,12 "/></svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title"><a href="{% url 'loan_detail' pk=related_loan.pk %}">{{ related_loan.loan_reference }}</a></div>
+                                    <div class="activity-description">Status: {{ related_loan.get_loan_status_display }}</div>
+                                    <div class="activity-meta">
+                                        <span class="activity-date">{{ related_loan.loan_date|date:"M d, Y" }}</span>
+                                        <span class="activity-amount">₦{{ related_loan.loan_amount|floatformat:0|intcomma }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="detail-card">
+                    <div class="card-header pb-3"><h2 class="card-title">Inventory Log</h2></div>
+                    <div class="card-body">
+                        {% if inventory_transactions %}
+                        <div class="activity-feed">
+                            {% for itxn in inventory_transactions %}
+                            <div class="activity-item">
+                                <div class="activity-icon 
+                                    {% if itxn.transaction_type == 'SALE' %}bg-danger-icon
+                                    {% elif itxn.transaction_type == 'SALE_REVERSAL' %}bg-success-icon
+                                    {% else %}bg-info-icon{% endif %}">
+                                    {# Icon for inventory transaction #}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-title">{{ itxn.get_transaction_type_display }}</div>
+                                    <div class="activity-description">Quantity: {{ itxn.quantity }}</div>
+                                    <div class="activity-meta">
+                                        <span class="activity-date">{{ itxn.transaction_date|date:"M d, Y H:i" }}</span>
+                                    </div>
+                                    {% if itxn.remarks %}<small class="text-muted d-block mt-1">Remarks: {{ itxn.remarks }}</small>{% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="empty-text">No inventory transactions logged for this sale.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* --- Paste the FULL CSS from motorcycle_detail.html or payment_detail.html here --- */
+/* Or ensure it's in your global stylesheet linked in base.html */
+
+/* CSS Variables (Example, ensure these match your established theme) */
+:root {
+    --primary-color: #f97316; /* Orange */
+    --primary-hover: #ea580c;
+    --success-color: #10b981; /* Green */
+    --warning-color: #f59e0b; /* Amber */
+    --danger-color: #ef4444;  /* Red */
+    --info-color: #3b82f6;    /* Blue */
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db;
+    --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
+    --gray-800: #1f2937; --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+}
+
+/* Layout */
+.content { max-width: 100%; margin: 0 auto; padding: 2rem 1rem; }
+.page-header-modern { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1.5rem 0; border-bottom: 1px solid var(--gray-200); }
+.header-content { display: flex; align-items: center; gap: 1rem; }
+.header-icon { width: 56px; height: 56px; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; color: rgb(250, 103, 103); box-shadow: var(--shadow-md); }
+.header-text { display: flex; flex-direction: column; gap: 0.25rem; }
+.page-title { font-size: 1.875rem; font-weight: 700; color: var(--gray-900); margin: 0; line-height: 1.2; }
+.page-subtitle { font-size: 1.125rem; color: var(--gray-600); margin: 0; font-weight: 500; }
+.header-actions .btn-secondary-outline { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); background: white; color: var(--gray-700); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease; }
+.header-actions .btn-secondary-outline:hover { background: var(--gray-50); border-color: var(--gray-400); }
+
+.detail-container { /* This is the .row */ }
+.main-content { /* This is .col-lg-8 */ }
+.right-sidebar { /* This is .col-lg-4 */ }
+.sidebar-content { padding-top: 0; }
+
+/* Cards */
+.detail-card { background: white; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); margin-bottom: 1.5rem; overflow: hidden; }
+.detail-card:hover { box-shadow: var(--shadow-md); }
+.card-header { padding: 1.5rem 1.5rem 0; border-bottom: none; }
+.card-header-content { display: flex; justify-content: space-between; align-items: center; }
+.card-title { font-size: 1.25rem; font-weight: 600; color: var(--gray-900); margin: 0; }
+.card-body { padding: 1.5rem; padding-top: 1rem; }
+
+/* Status Badges specific for Sale */
+.status-badge { padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.025em; display:inline-block; line-height:1; }
+.status-active { background-color: #dcfce7; color: #166534; } /* Green */
+.status-cancelled { background-color: #fee2e2; color: #991b1b; } /* Red */
+.status-inactive { background-color: var(--gray-100); color: var(--gray-700); }
+/* Add other specific status colors if needed */
+.bg-lightyellow { background-color: #fef9c3; color: #a16207;} /* From payment list */
+.bg-lightblue { background-color: #e0f2fe; color: #0ea5e9; } /* From payment list */
+
+
+/* Detail Grid */
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem 2rem; }
+.detail-group { display: flex; flex-direction: column; gap: 1rem; }
+.detail-item { display: flex; flex-direction: column; gap: 0.35rem; }
+.detail-label { font-size: 0.8rem; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.025em; }
+.detail-value { font-size: 0.95rem; font-weight: 600; color: var(--gray-800); }
+.detail-value.highlight-value { font-weight: 700; color: var(--primary-color); font-size:1.1em; }
+.detail-value a { color: var(--primary-color); text-decoration: none; }
+.detail-value a:hover { text-decoration: underline; }
+.detail-item-full { grid-column: 1 / -1; }
+
+/* Action Bar & Buttons */
+.action-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; padding: 1.5rem 0 0 0; }
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--border-radius); font-size: 0.875rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--primary-color); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); box-shadow: var(--shadow-md); }
+.btn-danger { background: var(--danger-color); color: white; }
+.btn-danger:hover:not(:disabled) { background: #dc2626; box-shadow: var(--shadow-md); }
+.btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+.btn-secondary:hover:not(:disabled) { background: var(--gray-300); }
+.btn-secondary-outline { /* From motorcycle_detail */ }
+.btn svg { vertical-align: middle; margin-right: 0.35em; width: 1em; height: 1em; }
+
+/* Activity Feed (from motorcycle_detail.html, adapted) */
+.activity-feed { display: flex; flex-direction: column; gap: 0.75rem; }
+.activity-item { display: flex; gap: 0.75rem; padding: 0.75rem; border-radius: var(--border-radius); background: var(--gray-50); border: 1px solid var(--gray-100); }
+.activity-item-cancelled { background-color: #fff5f5; border-color: #ffe2e2; }
+.activity-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+.bg-success-icon { background-color: var(--success-color); }
+.bg-danger-icon { background-color: var(--danger-color); }
+.bg-info-icon { background-color: var(--info-color); }
+.bg-lightred-icon { background-color: var(--danger-color); } /* Ensure consistency */
+
+.activity-content { flex: 1; min-width: 0; }
+.activity-title a, .activity-title { font-weight: 600; color: var(--primary-color); text-decoration: none; font-size: 0.9rem;}
+.activity-title a:hover { text-decoration: underline; }
+.activity-description { font-size: 0.8rem; color: var(--gray-600); margin-top: 0.1rem; }
+.status-text-active { color: var(--success-color); font-weight: 500; }
+.status-text-cancelled { color: var(--danger-color); font-weight: 500; }
+.activity-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 0.35rem; font-size: 0.75rem; }
+.activity-date { color: var(--gray-500); }
+.activity-amount { font-weight: 600; color: var(--gray-700); }
+
+.empty-text { color: var(--gray-500); font-size: 0.875rem; }
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) { 
+    .right-sidebar { margin-top: 1.5rem; }
+    .content { padding-right: 1rem; }
+}
+@media (max-width: 768px) {
+    .content { padding: 1rem; }
+    .page-header-modern { flex-direction: column; gap: 1rem; align-items: stretch; }
+    .header-content { justify-content: center; }
+    .header-actions { display: flex; justify-content: center; }
+    .detail-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .action-bar { flex-direction: column; }
+    .btn { justify-content: center; }
+}
+</style>
+{% endblock %}

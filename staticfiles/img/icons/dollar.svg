@@ -1,0 +1,7 @@
+    def get_deposit_balance(self):
+        total_deposits = Deposit.objects.filter(customer=self).aggregate(total=Sum('deposit_amount'))['total'] or 0
+        total_withdrawals = Withdrawal.objects.filter(customer=self).aggregate(total=Sum('withdrawal_amount'))['total'] or 0
+        return total_deposits - total_withdrawals
+
+
+                                <li><a href="{% url 'inventory_detail' %}">Inventory Transactions</a></li>

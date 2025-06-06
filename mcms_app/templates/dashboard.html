@@ -1,0 +1,1439 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ title|default:"Dashboard" }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    {# Modern Header for the Dashboard #}
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="header-icon-wrapper">
+                <div class="header-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg>
+                </div>
+            </div>
+            <div class="header-text">
+                <h1 class="dashboard-title">Dashboard Overview</h1>
+                <p class="dashboard-subtitle">Monitor your business metrics and recent activities</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="date-display">
+                <span class="current-date">{{ today_date|date:"F d, Y" }}</span>
+            </div>
+        </div>
+    </div>
+
+    {# Stats Grid #}
+    <div class="stats-section">
+        <div class="stats-grid">
+
+            <div class="stat-card sales-month">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon success-gradient">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-icon">↗</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">₦{{ sales_this_month_value|floatformat:2|intcomma }}</div>
+                    <div class="stat-label">Sales This Month</div>
+                    <div class="stat-meta">{{ sales_this_month_count }} transactions</div>
+                </div>
+            </div>
+
+            <div class="stat-card sales-year">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon success-gradient">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-icon">↗</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">₦{{ sales_this_year_value|floatformat:2|intcomma }}</div>
+                    <div class="stat-label">Sales This Year</div>
+                    <div class="stat-meta">{{ sales_this_year_count }} transactions</div>
+                </div>
+            </div>
+
+            <div class="stat-card deposits">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon info-gradient">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="24px" height="24px" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path d="M19.6 21H4.4C3.1 21 2 19.9 2 18.6V14h2v4.2c0 .6.4.8 1 .8h14c.6 0 1-.4 1-1v-4h2v4.6c0 1.3-1.1 2.4-2.4 2.4z"></path>
+                                <path d="M15.3 12.1L13.4 14v-4c0-2 0-4.9 2.4-7-3.4.6-5.1 3.2-5.2 7v4l-1.9-1.9L7 13l5 5 5-5-1.7-.9z"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-badge">Active</div>
+                    </div>
+                    <div class="stat-value">₦{{ total_customer_deposit_balance|floatformat:2|intcomma }}</div>
+                    <div class="stat-label">Deposit Balance</div>
+                    <div class="stat-meta">Customer deposits</div>
+                </div>
+            </div>
+
+            <div class="stat-card loans">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon warning-gradient">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-badge warning">Outstanding</div>
+                    </div>
+                    <div class="stat-value">₦{{ total_outstanding_loan_balance|floatformat:2|intcomma }}</div>
+                    <div class="stat-label">Loan Balance</div>
+                    <div class="stat-meta">Total outstanding</div>
+                </div>
+            </div>
+
+            <div class="stat-card suppliers">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon primary-gradient">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-badge pending">Pending</div>
+                    </div>
+                    <div class="stat-value">₦{{ total_undelivered_value_from_suppliers|floatformat:2|intcomma }}</div>
+                    <div class="stat-label">Supplier Payments</div>
+                    <div class="stat-meta">Awaiting delivery</div>
+                </div>
+            </div>
+
+            <div class="stat-card units">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon emerald-gradient">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12,6 12,12 16,14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-icon">—</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ total_undelivered_units_from_suppliers|intcomma }}</div>
+                    <div class="stat-label">Pending Units</div>
+                    <div class="stat-meta">To be delivered</div>
+                </div>
+            </div>
+
+            <div class="stat-card inventory">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon info-gradient">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                            </svg>
+                        </div>
+                        <div class="stat-trend">
+                            <span class="trend-icon">↗</span>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ total_inventory_units|intcomma }}</div>
+                    <div class="stat-label">Inventory Units</div>
+                    <div class="stat-meta">Current stock</div>
+                </div>
+            </div>
+
+            <div class="stat-card inventory-value">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon info-gradient">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-badge">Est.</div>
+                    </div>
+                    <div class="stat-value">₦{{ estimated_total_inventory_value|floatformat:2|intcomma }}</div>
+                    <div class="stat-label">Inventory Value</div>
+                    <div class="stat-meta">Estimated worth</div>
+                </div>
+            </div>
+
+            <!-- <div class="stat-card low-stock">
+                <div class="stat-content">
+                    <div class="stat-header">
+                        <div class="stat-icon danger-gradient">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                        </div>
+                        <div class="stat-badge danger">Alert</div>
+                    </div>
+                    <div class="stat-value">{{ low_stock_items_count }}</div>
+                    <div class="stat-label">Low Stock Models</div>
+                    <div class="stat-meta">Need attention</div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+
+    {# Main Content Grid #}
+    <div class="dashboard-grid">
+        <div class="main-column">
+            {# Recent Sales #}
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <h3 class="card-title">
+                            <span class="card-icon">📊</span>
+                            Recent Sales
+                        </h3>
+                        <div class="card-actions">
+                            <span class="view-all-link">View all →</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    {% if recent_sales %}
+                    <div class="sales-table-wrapper">
+                        <table class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Reference</th>
+                                    <th>Customer</th>
+                                    <th>Model</th>
+                                    <th class="text-right">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in recent_sales %}
+                                <tr>
+                                    <td>
+                                        <div class="date-time">
+                                            <span class="date">{{sale.sale_date|date:"M d, Y"}}</span>
+                                            <span class="time">{{sale.sale_date|date:"H:i"}}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="{{ sale.get_absolute_url }}" class="reference-link">
+                                            {{ sale.sale_reference }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="customer-name">{{sale.customer.name}}</div>
+                                    </td>
+                                    <td>
+                                        <div class="model-name">{{sale.motorcycle.name}}</div>
+                                    </td>
+                                    <td class="text-right">
+                                        <span class="price-value">₦{{ sale.final_price|floatformat:0|intcomma }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">📈</div>
+                        <p class="empty-message">No recent sales to display</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Recent Inventory Transactions #}
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <h3 class="card-title">
+                            <span class="card-icon">📦</span>
+                            Recent Inventory Transactions
+                        </h3>
+                    </div>
+                </div>
+                <div class="card-content">
+                    {% if recent_inventory_transactions %}
+                    <div class="activity-timeline">
+                        {% for itxn in recent_inventory_transactions %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker {% if itxn.quantity > 0 %}positive{% else %}negative{% endif %}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                                    <polyline points="17 6 23 6 23 12" />
+                                </svg>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-header">
+                                    <h4 class="timeline-title">{{itxn.get_transaction_type_display}}</h4>
+                                    <span class="timeline-date">{{ itxn.transaction_date|date:"M d, H:i" }}</span>
+                                </div>
+                                <div class="timeline-details">
+                                    <span class="model-name">{{itxn.motorcycle_model.name}}</span>
+                                    <span class="quantity-badge {% if itxn.quantity > 0 %}positive{% else %}negative{% endif %}">
+                                        {% if itxn.quantity > 0 %}+{% endif %}{{itxn.quantity}} units
+                                    </span>
+                                </div>
+                                {% if itxn.remarks %}
+                                <p class="timeline-description">{{itxn.remarks|truncatewords:10}}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">📦</div>
+                        <p class="empty-message">No recent inventory transactions</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-column">
+            {# Top Selling Models #}
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">🏆</span>
+                        Top Selling Models
+                    </h3>
+                </div>
+                <div class="card-content">
+                    {% if top_selling_models_year_qty %}
+                    <div class="ranking-list">
+                        {% for model_sale in top_selling_models_year_qty %}
+                        <div class="ranking-item">
+                            <div class="rank-number">{{ forloop.counter }}</div>
+                            <div class="rank-content">
+                                <div class="model-info">
+                                    <span class="brand">{{model_sale.motorcycle__brand}}</span>
+                                    <span class="model">{{model_sale.motorcycle__name}}</span>
+                                </div>
+                                <div class="sales-count">{{model_sale.count}} units</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">🏆</div>
+                        <p class="empty-message">No sales data yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Recent Deposits #}
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">💰</span>
+                        Recent Deposits
+                    </h3>
+                </div>
+                <div class="card-content">
+                    {% if recent_deposits %}
+                    <div class="transaction-list">
+                        {% for deposit in recent_deposits %}
+                        <div class="transaction-item">
+                            <div class="transaction-icon deposit">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="18px" height="18px" viewBox="0 0 24 24">
+                                    <path d="M19.6 21H4.4C3.1 21 2 19.9 2 18.6V14h2v4.2c0 .6.4.8 1 .8h14c.6 0 1-.4 1-1v-4h2v4.6c0 1.3-1.1 2.4-2.4 2.4z"></path>
+                                    <path d="M15.3 12.1L13.4 14v-4c0-2 0-4.9 2.4-7-3.4.6-5.1 3.2-5.2 7v4l-1.9-1.9L7 13l5 5 5-5-1.7-.9z"></path>
+                                </svg>
+                            </div>
+                            <div class="transaction-content">
+                                <div class="transaction-header">
+                                    <a href="{{ deposit.get_absolute_url }}" class="transaction-ref">{{deposit.deposit_reference}}</a>
+                                    <span class="transaction-amount">₦{{ deposit.deposit_amount|floatformat:0|intcomma }}</span>
+                                </div>
+                                <div class="transaction-details">
+                                    <span class="customer-name">{{deposit.customer.name}}</span>
+                                    <span class="transaction-date">{{ deposit.deposit_date|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">💰</div>
+                        <p class="empty-message">No recent deposits</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Recent Withdrawals #}
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-icon">💸</span>
+                        Recent Withdrawals
+                    </h3>
+                </div>
+                <div class="card-content">
+                    {% if recent_withdrawals %}
+                    <div class="transaction-list">
+                        {% for withdrawal in recent_withdrawals %}
+                        <div class="transaction-item">
+                            <div class="transaction-icon withdrawal">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                                    <polyline points="17,17 17,7 7,7"></polyline>
+                                </svg>
+                            </div>
+                            <div class="transaction-content">
+                                <div class="transaction-header">
+                                    <a href="{{ withdrawal.deposit.get_absolute_url }}" class="transaction-ref">{{withdrawal.deposit.deposit_reference}}</a>
+                                    <span class="transaction-amount">₦{{ withdrawal.withdrawal_amount|floatformat:0|intcomma }}</span>
+                                </div>
+                                <div class="transaction-details">
+                                    <span class="customer-name">{{withdrawal.deposit.customer.name}}</span>
+                                    <span class="transaction-date">{{ withdrawal.withdrawal_date|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">💸</div>
+                        <p class="empty-message">No recent withdrawals</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Bottom Row #}
+    <div class="dashboard-row">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <span class="card-icon">🏢</span>
+                    Recent Supplier Payments
+                </h3>
+            </div>
+            <div class="card-content">
+                {% if recent_supplier_payments %}
+                <div class="payment-grid">
+                    {% for payment in recent_supplier_payments %}
+                    <div class="payment-card">
+                        <div class="payment-header">
+                            <a href="{% url 'payment_detail' pk=payment.pk %}" class="payment-ref">{{ payment.payment_reference }}</a>
+                            <span class="payment-amount">₦{{ payment.amount_paid|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="payment-details">
+                            <span class="supplier-name">{{ payment.supplier.name }}</span>
+                            <span class="payment-date">{{ payment.payment_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🏢</div>
+                    <p class="empty-message">No recent supplier payments</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <span class="card-icon">💳</span>
+                    Recent Loan Repayments
+                </h3>
+            </div>
+            <div class="card-content">
+                {% if recent_repayments %}
+                <div class="payment-grid">
+                    {% for repayment in recent_repayments %}
+                    <div class="payment-card">
+                        <div class="payment-header">
+                            <a href="{{ repayment.get_absolute_url }}" class="payment-ref">{{ repayment.loan.loan_reference }}</a>
+                            <span class="payment-amount">₦{{ repayment.repayment_amount|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="payment-details">
+                            <span class="customer-name">{{ repayment.customer.name }}</span>
+                            <span class="payment-date">{{ repayment.repayment_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">💳</div>
+                    <p class="empty-message">No recent loan repayments</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --success-color: #10b981;
+    --success-hover: #059669;
+    --danger-color: #ef4444;
+    --danger-hover: #dc2626;
+    --info-color: #3b82f6;
+    --info-hover: #2563eb;
+    --warning-color: #f59e0b;
+    --warning-hover: #d97706;
+    --purple-color: #8b5cf6;
+    --purple-hover: #7c3aed;
+    --emerald-color: #10b981;
+    --emerald-hover: #059669;
+
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+
+    --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    --gradient-success: linear-gradient(135deg, var(--success-color), var(--success-hover));
+    --gradient-danger: linear-gradient(135deg, var(--danger-color), var(--danger-hover));
+    --gradient-info: linear-gradient(135deg, var(--info-color), var(--info-hover));
+    --gradient-warning: linear-gradient(135deg, var(--warning-color), var(--warning-hover));
+    --gradient-purple: linear-gradient(135deg, var(--purple-color), var(--purple-hover));
+    --gradient-emerald: linear-gradient(135deg, var(--emerald-color), var(--emerald-hover));
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+    --border-radius-xl: 20px;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    background: linear-gradient(135deg, var(--gray-50) 0%, #ffffff 100%);
+    min-height: 100vh;
+}
+
+/* Header */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--gray-200);
+    position: relative;
+}
+
+.dashboard-header::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100px;
+    height: 3px;
+    background: var(--gradient-primary);
+    border-radius: 2px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.header-icon-wrapper {
+    position: relative;
+}
+
+.header-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--border-radius-lg);
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.header-icon::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.dashboard-title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin: 0;
+    background: linear-gradient(135deg, var(--gray-900), var(--gray-700));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dashboard-subtitle {
+    font-size: 1.125rem;
+    color: var(--gray-600);
+    margin: 0.5rem 0 0 0;
+    font-weight: 500;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.date-display {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+}
+
+.current-date {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+/* Stats Section */
+.stats-section {
+    margin-bottom: 3rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+}
+
+.stat-card.sales-week::before,
+.stat-card.sales-month::before,
+.stat-card.sales-year::before { background: var(--gradient-success); }
+
+.stat-card.deposits::before { background: var(--gradient-info); }
+.stat-card.loans::before { background: var(--gradient-warning); }
+.stat-card.suppliers::before { background: var(--gradient-purple); }
+.stat-card.units::before { background: var(--gradient-emerald); }
+.stat-card.inventory::before,
+.stat-card.inventory-value::before { background: var(--gradient-info); }
+.stat-card.low-stock::before { background: var(--gradient-danger); }
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-content {
+    position: relative;
+    z-index: 1;
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.stat-icon.success-gradient { background: var(--gradient-success); }
+.stat-icon.info-gradient { background: var(--gradient-info); }
+.stat-icon.warning-gradient { background: var(--gradient-warning); }
+.stat-icon.primary-gradient { background: var(--gradient-primary); }
+.stat-icon.emerald-gradient { background: var(--gradient-emerald); }
+.stat-icon.danger-gradient { background: var(--gradient-danger); }
+
+.stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.trend-icon {
+    font-size: 1.25rem;
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.stat-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-badge:not(.warning):not(.danger) {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.stat-badge.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.stat-badge.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.stat-badge.pending {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--purple-color);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 0.25rem;
+}
+
+.stat-meta {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.sidebar-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Dashboard Cards */
+.dashboard-card {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--gray-200);
+    background: linear-gradient(135deg, var(--gray-50), white);
+}
+
+.card-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-icon {
+    font-size: 1.25rem;
+}
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.view-all-link {
+    font-size: 0.875rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.view-all-link:hover {
+    color: var(--primary-hover);
+}
+
+.card-content {
+    padding: 2rem;
+}
+
+/* Modern Table */
+.sales-table-wrapper {
+    overflow-x: auto;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.modern-table th {
+    text-align: left;
+    padding: 1rem 0.75rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    border-bottom: 2px solid var(--gray-200);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modern-table td {
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+}
+
+.modern-table tbody tr:hover {
+    background: var(--gray-50);
+}
+
+.text-right {
+    text-align: right;
+}
+
+.date-time {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.date {
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.time {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.reference-link {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.reference-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.customer-name,
+.model-name {
+    font-weight: 500;
+    color: var(--gray-900);
+}
+
+.price-value {
+    font-weight: 700;
+    color: var(--gray-900);
+    font-size: 1rem;
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+}
+
+.timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 40px;
+    width: 2px;
+    height: calc(100% + 1.5rem);
+    background: var(--gray-200);
+}
+
+.timeline-marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.timeline-marker.positive {
+    background: var(--gradient-success);
+    color: white;
+}
+
+.timeline-marker.negative {
+    background: var(--gradient-danger);
+    color: white;
+}
+
+.timeline-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.timeline-date {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.timeline-details {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.quantity-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.quantity-badge.positive {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.quantity-badge.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.timeline-description {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Ranking List */
+.ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease;
+}
+
+.ranking-item:hover {
+    background: var(--gray-100);
+    transform: translateX(4px);
+}
+
+.rank-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.rank-content {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.model-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.brand {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.model {
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.sales-count {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 0.875rem;
+}
+
+/* Transaction List */
+.transaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.transaction-item:hover {
+    border-color: var(--gray-300);
+    box-shadow: var(--shadow-sm);
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.transaction-icon.deposit {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.transaction-icon.withdrawal {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.transaction-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.transaction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.transaction-ref {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.transaction-ref:hover {
+    text-decoration: underline;
+}
+
+.transaction-amount {
+    font-weight: 700;
+    color: var(--gray-900);
+    font-size: 0.875rem;
+}
+
+.transaction-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.transaction-date {
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+/* Payment Grid */
+.payment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.payment-card {
+    padding: 1.5rem;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    background: var(--gray-50);
+    transition: all 0.2s ease;
+}
+
+.payment-card:hover {
+    border-color: var(--gray-300);
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.payment-ref {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.payment-ref:hover {
+    text-decoration: underline;
+}
+
+.payment-amount {
+    font-weight: 700;
+    color: var(--gray-900);
+    font-size: 0.875rem;
+}
+
+.payment-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+}
+
+.supplier-name,
+.customer-name {
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.payment-date {
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+/* Dashboard Row */
+.dashboard-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray-500);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-message {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-content {
+        gap: 1rem;
+    }
+    
+    .header-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .dashboard-title {
+        font-size: 1.75rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+    }
+    
+    .card-content {
+        padding: 1.5rem;
+    }
+    
+    .payment-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ranking-item {
+        padding: 0.75rem;
+    }
+    
+    .timeline-item {
+        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding: 0.5rem;
+    }
+    
+    .dashboard-header {
+        padding: 1rem 0;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-subtitle {
+        font-size: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .card-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .card-content {
+        padding: 1rem;
+    }
+    
+    .modern-table {
+        font-size: 0.75rem;
+    }
+    
+    .modern-table th,
+    .modern-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .dashboard-container {
+        background: white;
+        box-shadow: none;
+    }
+    
+    .dashboard-card {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+        break-inside: avoid;
+    }
+    
+    .stat-card {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+    }
+    
+    .header-actions {
+        display: none;
+    }
+}
+</style>
+{% endblock %}

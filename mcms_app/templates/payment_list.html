@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="content">
+    <div class="page-header">
+        <div class="page-title">
+            <h4>Payment List</h4>
+            <h6>Manage your supplier payments</h6>
+        </div>
+        <div class="page-btn">
+            <a href="{% url 'payment_create' %}" class="btn btn-added">
+                <img src="{% static 'img/icons/plus.svg' %}" alt="img" class="me-1">Add New Payment
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-top">
+                <div class="search-set">
+                    <div class="search-path">
+                        <a class="btn btn-filter" id="filter_search">
+                            <img src="{% static 'img/icons/filter.svg' %}" alt="img">
+                            <span><img src="{% static 'img/icons/closes.svg' %}" alt="img"></span>
+                        </a>
+                    </div>
+                    <div class="search-input">
+                        <a class="btn btn-searchset"><img src="{% static 'img/icons/search-white.svg' %}" alt="img"></a>
+                    </div>
+                </div>
+                <div class="wordset">
+                    <ul>
+                        <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img
+                                    src="{% static 'img/icons/printer.svg' %}" alt="img"></a></li>
+                        <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img
+                                    src="{% static 'img/icons/pdf.svg' %}" alt="img"></a></li>
+                        <li><a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img
+                                    src="{% static 'img/icons/excel.svg' %}" alt="img"></a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card mb-3" id="filter_inputs">
+                <div class="card-body pb-0">
+                    <div class="row">
+                        <div class="col-lg-12 col-sm-12">
+                            <form method="get" class="row">
+                                <div class="col-sm-auto">
+                                    {{ filter_form.supplier }}
+                                </div>
+                                <div class="col-sm-auto">
+                                    {{ filter_form.payment_method }}
+                                </div>
+                                <div class="col-sm-auto">
+                                    <div class="input-group input-group">
+                                        <span class="input-group-text">From:</span>
+                                        {{ filter_form.date_from }}
+                                    </div>
+                                </div>
+                                <div class="col-sm-auto">
+                                    <div class="input-group input-group">
+                                        <span class="input-group-text">To:</span>
+                                        {{ filter_form.date_to }}
+                                    </div>
+                                </div>
+                                <div class="col-sm-auto">
+                                    {{ filter_form.status }} {# Changed from show_cancelled #}
+                                </div>
+                                <div class="col-auto align-self-end">
+                                    <button type="submit" class="btn btn-primary ">Filter</button>
+                                    <a href="{% url 'payment_list' %}" class="btn btn-secondary ms-2">Reset</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table datanew">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Reference</th>
+                            <th>Supplier</th>
+                            <th class="text-end">Amount Paid</th>
+                            <th>Payment Date</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{payment.pk}}</td>
+                            <td>
+                                <a href="{% url 'payment_detail' pk=payment.pk %}">{{ payment.payment_reference }}</a>
+                            </td>
+                            <td>
+                                <a href="{% url 'supplier_detail' pk=payment.supplier.pk %}">{{ payment.supplier.name }}</a>
+                            </td>
+                            <td class="text-end">₦{{ payment.amount_paid|floatformat:2|intcomma }}</td>
+                            <td>{{ payment.payment_date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ payment.get_payment_method_display }}</td>
+                            <td>
+                                <span class="badges 
+                                    {% if payment.status == payment.COMPLETED %}bg-success text-white
+                                    {% elif payment.status == payment.ACTIVE %}bg-lightgreen
+                                    {% elif payment.status == payment.CANCELLED %}bg-lightred
+                                    {% else %}bg-lightgray{% endif %}">
+                                    {{ payment.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a class="me-3" href="{% url 'payment_detail' pk=payment.pk %}" title="View Details">
+                                    <img src="{% static 'img/icons/eye.svg' %}" alt="View">
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include "mcms_app/partials/pagination.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

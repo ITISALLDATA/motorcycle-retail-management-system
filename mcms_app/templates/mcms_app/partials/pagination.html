@@ -1,0 +1,192 @@
+{% if page_obj.has_other_pages %}
+{% load custom_filters %}
+<nav aria-label="Page navigation" class="pagination-nav">
+    <ul class="pagination justify-content-center">
+        <!-- First & Previous buttons -->
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link page-nav-btn" 
+               href="{% if page_obj.has_previous %}{{ request|build_url:1 }}{% else %}#{% endif %}" 
+               aria-label="First page"
+               {% if not page_obj.has_previous %}tabindex="-1" aria-disabled="true"{% endif %}>
+                <i class="fas fa-angle-double-left" aria-hidden="true"></i>
+                <span class="d-none d-sm-inline">First</span>
+            </a>
+        </li>
+        
+        <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+            <a class="page-link page-nav-btn" 
+               href="{% if page_obj.has_previous %}{{ request|build_url:page_obj.previous_page_number }}{% else %}#{% endif %}" 
+               aria-label="Previous page"
+               {% if not page_obj.has_previous %}tabindex="-1" aria-disabled="true"{% endif %}>
+                <i class="fas fa-angle-left" aria-hidden="true"></i>
+                <span class="d-none d-sm-inline">Prev</span>
+            </a>
+        </li>
+
+        <!-- Page numbers with smart ellipsis -->
+        {% with page_obj.number as current_page %}
+        {% with page_obj.paginator.num_pages as total_pages %}
+        
+        <!-- Always show first page -->
+        {% if current_page > 4 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ request|build_url:1 }}" aria-label="Page 1">1</a>
+            </li>
+            {% if current_page > 5 %}
+                <li class="page-item disabled">
+                    <span class="page-link page-ellipsis" aria-hidden="true">…</span>
+                </li>
+            {% endif %}
+        {% endif %}
+
+        <!-- Show pages around current page -->
+        {% for i in page_obj.paginator.page_range %}
+            {% if i >= current_page|add:'-2' and i <= current_page|add:'2' %}
+                <li class="page-item {% if i == current_page %}active{% endif %}" 
+                    {% if i == current_page %}aria-current="page"{% endif %}>
+                    {% if i == current_page %}
+                        <span class="page-link page-current">{{ i }}</span>
+                    {% else %}
+                        <a class="page-link" href="{{ request|build_url:i }}" aria-label="Page {{ i }}">{{ i }}</a>
+                    {% endif %}
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Always show last page -->
+        {% if current_page < total_pages|add:'-3' %}
+            {% if current_page < total_pages|add:'-4' %}
+                <li class="page-item disabled">
+                    <span class="page-link page-ellipsis" aria-hidden="true">…</span>
+                </li>
+            {% endif %}
+            <li class="page-item">
+                <a class="page-link" href="{{ request|build_url:total_pages }}" aria-label="Page {{ total_pages }}">{{ total_pages }}</a>
+            </li>
+        {% endif %}
+        
+        {% endwith %}
+        {% endwith %}
+
+        <!-- Next & Last buttons -->
+        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link page-nav-btn" 
+               href="{% if page_obj.has_next %}{{ request|build_url:page_obj.next_page_number }}{% else %}#{% endif %}" 
+               aria-label="Next page"
+               {% if not page_obj.has_next %}tabindex="-1" aria-disabled="true"{% endif %}>
+                <span class="d-none d-sm-inline">Next</span>
+                <i class="fas fa-angle-right" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+        <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+            <a class="page-link page-nav-btn" 
+               href="{% if page_obj.has_next %}{{ request|build_url:page_obj.paginator.num_pages }}{% else %}#{% endif %}" 
+               aria-label="Last page"
+               {% if not page_obj.has_next %}tabindex="-1" aria-disabled="true"{% endif %}>
+                <span class="d-none d-sm-inline">Last</span>
+                <i class="fas fa-angle-double-right" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+    
+    <!-- Page info -->
+    <div class="pagination-info text-center mt-3">
+        <small class="text-muted">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} 
+            ({{ page_obj.paginator.count }} total items)
+        </small>
+    </div>
+</nav>
+
+<style>
+.pagination-nav {
+    margin: 2rem 0;
+}
+
+.pagination .page-link {
+    border-radius: 8px;
+    margin: 0 2px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    text-decoration: none;
+}
+
+.pagination .page-link:hover:not(.page-current) {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #212529;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pagination .page-item.active .page-link,
+.pagination .page-current {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border-color: #ec3740;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    background-color: #fff;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination .page-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 60px;
+    justify-content: center;
+}
+
+.pagination .page-ellipsis {
+    background: transparent;
+    border-color: transparent;
+    color: #6c757d;
+    cursor: default;
+}
+
+.pagination-info {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 576px) {
+    .pagination .page-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .pagination .page-nav-btn {
+        min-width: 50px;
+    }
+    
+    .pagination .page-nav-btn i {
+        font-size: 0.875rem;
+    }
+}
+
+/* Font Awesome icon styling */
+.pagination .page-nav-btn i {
+    font-size: 0.9em;
+}
+
+/* Focus styles for accessibility */
+.pagination .page-link:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    box-shadow: none;
+}
+</style>
+{% endif %}

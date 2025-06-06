@@ -1,0 +1,809 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Deposit Details: {{ deposit.deposit_reference }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {# Modern Header #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon" style="background: linear-gradient(135deg, #34d399, #059669);"> {# Emerald Green for Suppliers #}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="#ffffff" width="40px" height="40px" viewBox="0 0 24 24" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M19.6 21H4.4C3.1 21 2 19.9 2 18.6V14h2v4.2c0 .6.4.8 1 .8h14c.6 0 1-.4 1-1v-4h2v4.6c0 1.3-1.1 2.4-2.4 2.4z"></path><path d="M15.3 12.1L13.4 14v-4c0-2 0-4.9 2.4-7-3.4.6-5.1 3.2-5.2 7v4l-1.9-1.9L7 13l5 5 5-5-1.7-.9z"></path></g></svg>            </div>
+            <div class="header-text">
+                <h1 class="page-title">Deposit Details</h1>
+                <p class="page-subtitle">{{ deposit.deposit_reference|default:"New Deposit" }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'deposit_list' %}" class="btn-back">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-container">
+        {# Main Information Card #}
+        <div class="main-content">
+            <div class="detail-card">
+                <div class="card-header">
+                    <div class="card-header-content">
+                        <h2 class="card-title">Deposit Information</h2>
+                        <div class="status-badge 
+                            {% if deposit.deposit_status == 'active' %}status-active
+                            {% elif deposit.deposit_status == 'completed' %}status-completed
+                            {% elif deposit.deposit_status == 'cancelled' %}status-cancelled
+                            {% else %}status-inactive{% endif %}">
+                            {{ deposit.get_deposit_status_display }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Reference Number</span>
+                            <span class="detail-value">{{ deposit.deposit_reference|default:"N/A" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Customer</span>
+                            <span class="detail-value">
+                                <a href="{% if deposit.customer %}{% url 'customer_detail' pk=deposit.customer.pk %}{% endif %}" class="customer-link">
+                                    {{ deposit.customer.name|default:"N/A" }}
+                                </a>
+                            </span>
+                        </div>
+                        <div class="detail-item highlight-item">
+                            <span class="detail-label">Deposit Amount</span>
+                            <span class="detail-value amount-value">₦{{ deposit.deposit_amount|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Deposit Date</span>
+                            <span class="detail-value">{{ deposit.deposit_date|date:"M d, Y H:i" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Deposit Type</span>
+                            <span class="detail-value">{{ deposit.get_deposit_type_display }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Total Withdrawn</span>
+                            <span class="detail-value withdrawn-amount">₦{{ deposit.get_total_withdrawn|floatformat:2|intcomma }}</span>
+                        </div>
+                        <div class="detail-item balance-item">
+                            <span class="detail-label">Remaining Balance</span>
+                            <span class="detail-value balance-value {% if deposit.remaining_balance <= 0 %}balance-zero{% endif %}">
+                                ₦{{ deposit.remaining_balance|floatformat:2|intcomma }}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Last Updated</span>
+                            <span class="detail-value timestamp-value">
+                                {{ deposit.updated_at|date:"M d, Y H:i"|default:"N/A" }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if deposit.transaction_note %}
+                    <div class="transaction-note">
+                        <span class="detail-label">Transaction Note</span>
+                        <div class="note-content">{{ deposit.transaction_note|linebreaksbr }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Action Buttons #}
+            <div class="action-bar">
+                {% if deposit.deposit_status != 'cancelled'  and deposit.deposit_status != 'completed' and deposit.remaining_balance > 0 %}
+                    <a href="{% url 'deposit_edit' deposit_id=deposit.pk %}" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                        </svg>
+                        Edit Deposit
+                    </a>
+                    <a href="{% url 'deposit_cancel' deposit_id=deposit.pk %}" class="btn btn-danger">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        Cancel Deposit
+                    </a>
+                    <a href="{% url 'withdrawal_create' %}?deposit_id={{ deposit.pk }}" class="btn btn-success">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Make Withdrawal
+                    </a>
+                {% else %}
+                    <button class="btn btn-secondary" disabled>Edit Deposit</button>
+                    <button class="btn btn-danger" disabled>Cancel Deposit</button>
+                    <button class="btn btn-success" disabled>Make Withdrawal</button>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Right Sidebar - Withdrawals #}
+        <div class="right-sidebar">
+            <div class="sidebar-card">
+                <div class="sidebar-header">
+                    <h3 class="sidebar-title">
+                        Withdrawals
+                    </h3>
+                    <span class="withdrawal-count">{{ withdrawals|length }}</span>
+                </div>
+                <div class="sidebar-body">
+                    {% if withdrawals %}
+                        <div class="withdrawal-list">
+                            {% for wd in withdrawals %}
+                                <div class="withdrawal-item {% if wd.withdrawal_status == 'cancelled' %}withdrawal-cancelled{% endif %}">
+                                    <div class="withdrawal-header">
+                                        <a href="{{ wd.get_absolute_url }}" class="withdrawal-link">
+                                            Withdrawal #{{ wd.pk }}
+                                        </a>
+                                        <span class="withdrawal-status status-{{ wd.withdrawal_status }}">
+                                            {{ wd.get_withdrawal_status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="withdrawal-details">
+                                        <div class="withdrawal-amount">₦{{ wd.withdrawal_amount|floatformat:0|intcomma }}</div>
+                                        <div class="withdrawal-date">{{ wd.withdrawal_date|date:"M d, Y" }}</div>
+                                    </div>
+                                    {% if wd.sale %}
+                                        <div class="sale-reference">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                                            </svg>
+                                            <a href="{{ wd.sale.get_absolute_url }}">Sale: {{ wd.sale.sale_reference }}</a>
+                                        </div>
+                                    {% endif %}
+                                    {% if wd.remarks %}
+                                        <div class="withdrawal-remarks">{{ wd.remarks|truncatewords:8 }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                            <p>No withdrawals yet</p>
+                            <small>Withdrawals from this deposit will appear here</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --success-color: #10b981;
+    --success-hover: #059669;
+    --danger-color: #ef4444;
+    --danger-hover: #dc2626;
+    --info-color: #3b82f6;
+    --warning-color: #f59e0b;
+    
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+}
+
+/* Layout */
+.content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    background: var(--gray-50);
+    min-height: 100vh;
+}
+
+/* Header */
+.page-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    background: white;
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.header-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--info-color), #1e3a8a);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: var(--gray-600);
+    margin: 0;
+    font-weight: 500;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid var(--gray-200);
+}
+
+.btn-back:hover {
+    background: var(--gray-200);
+    color: var(--gray-800);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Main Layout */
+.detail-container {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* Cards */
+.detail-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.detail-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    padding: 2rem 2rem 0;
+    border-bottom: 1px solid var(--gray-100);
+    margin-bottom: 1.5rem;
+}
+
+.card-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1.5rem;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.card-body {
+    padding: 0 2rem 2rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-completed {
+    background: #cffafe;
+    color: #0891b2;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-inactive {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+/* Detail Grid */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-100);
+    transition: all 0.2s ease;
+}
+
+.detail-item:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.highlight-item {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border-color: #bae6fd;
+}
+
+.balance-item {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-color: #bbf7d0;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    line-height: 1.4;
+}
+
+.amount-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--info-color);
+}
+
+.balance-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+.balance-zero {
+    color: var(--gray-400);
+}
+
+.withdrawn-amount {
+    color: var(--warning-color);
+}
+
+.timestamp-value {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.customer-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.customer-link:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+/* Transaction Note */
+.transaction-note {
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--info-color);
+}
+
+.note-content {
+    margin-top: 0.5rem;
+    color: var(--gray-700);
+    line-height: 1.6;
+}
+
+/* Action Bar */
+.action-bar {
+    display: flex;
+    gap: 1rem;
+    padding: 2rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-lg);
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-xs);
+    min-width: 140px;
+    justify-content: center;
+}
+
+.btn:hover:not(:disabled):not(.btn-disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: var(--danger-hover);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background: var(--success-hover);
+}
+
+.btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn:disabled,
+.btn-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Right Sidebar */
+.right-sidebar .sidebar-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    position: sticky;
+    top: 2rem;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.withdrawal-count {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.sidebar-body {
+    padding: 1.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Withdrawal List */
+.withdrawal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.withdrawal-item {
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
+
+.withdrawal-item:hover {
+    background: white;
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.withdrawal-cancelled {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.withdrawal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.withdrawal-link {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.withdrawal-link:hover {
+    text-decoration: underline;
+}
+
+.withdrawal-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.withdrawal-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.withdrawal-amount {
+    font-weight: 700;
+    color: var(--gray-900);
+    font-size: 0.875rem;
+}
+
+.withdrawal-date {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+.sale-reference {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--info-color);
+    margin-bottom: 0.5rem;
+}
+
+.sale-reference a {
+    color: var(--info-color);
+    text-decoration: none;
+}
+
+.sale-reference a:hover {
+    text-decoration: underline;
+}
+
+.withdrawal-remarks {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    font-style: italic;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--gray-500);
+}
+
+.empty-state svg {
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state small {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .detail-container {
+        grid-template-columns: 1fr 320px;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .detail-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .right-sidebar .sidebar-card {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 1rem;
+    }
+    
+    .page-header-modern {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: stretch;
+        padding: 1.5rem;
+    }
+    
+    .header-content {
+        justify-content: center;
+    }
+    
+    .header-actions {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-bar {
+        flex-direction: column;
+        padding: 1.5rem;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .card-body,
+    .card-header,
+    .sidebar-body,
+    .sidebar-header {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1rem;
+    }
+    
+    .header-icon {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .detail-item {
+        padding: 1rem;
+    }
+    
+    .amount-value {
+        font-size: 1.25rem;
+    }
+}
+</style>
+{% endblock %}

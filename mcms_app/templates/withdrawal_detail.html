@@ -1,0 +1,778 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Withdrawal Details: ID {{ withdrawal.pk }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {# Modern Header with improved styling #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon withdrawal-icon">
+                <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 9C11.4477 9 11 9.44771 11 10V15.5856L9.70711 14.2928C9.3166 13.9024 8.68343 13.9024 8.29292 14.2928C7.90236 14.6834 7.90236 15.3165 8.29292 15.7071L11.292 18.7063C11.6823 19.0965 12.3149 19.0968 12.7055 18.707L15.705 15.7137C16.0955 15.3233 16.0955 14.69 15.705 14.2996C15.3145 13.909 14.6814 13.909 14.2908 14.2996L13 15.5903V10C13 9.44771 12.5523 9 12 9Z" fill="#ffffff"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M21 1C22.6569 1 24 2.34315 24 4V8C24 9.65685 22.6569 11 21 11H19V20C19 21.6569 17.6569 23 16 23H8C6.34315 23 5 21.6569 5 20V11H3C1.34315 11 0 9.65685 0 8V4C0 2.34315 1.34315 1 3 1H21ZM22 8C22 8.55228 21.5523 9 21 9H19V7H20C20.5523 7 21 6.55229 21 6C21 5.44772 20.5523 5 20 5H4C3.44772 5 3 5.44772 3 6C3 6.55229 3.44772 7 4 7H5V9H3C2.44772 9 2 8.55228 2 8V4C2 3.44772 2.44772 3 3 3H21C21.5523 3 22 3.44772 22 4V8ZM7 7V20C7 20.5523 7.44772 21 8 21H16C16.5523 21 17 20.5523 17 20V7H7Z" fill="#ffffff"></path> </g></svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">Withdrawal Details</h1>
+                <div class="page-subtitle">
+                    <span class="withdrawal-id">ID {{ withdrawal.pk }}</span>
+                    <span class="separator">•</span>
+                    <span class="deposit-ref">From {{ withdrawal.deposit.deposit_reference }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'withdrawal_list' %}" class="btn-back">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-container">
+        <div class="main-content">
+            {# Status Card #}
+            <div class="status-card">
+                <div class="status-content">
+                    <div class="status-info">
+                        <h3 class="status-title">Withdrawal Status</h3>
+                        <div class="status-badge 
+                            {% if withdrawal.withdrawal_status == 'completed' %}status-completed
+                            {% elif withdrawal.withdrawal_status == 'cancelled' %}status-cancelled
+                            {% else %}status-pending{% endif %}">
+                            <div class="status-indicator"></div>
+                            {{ withdrawal.get_withdrawal_status_display }}
+                        </div>
+                    </div>
+                    <div class="amount-display">
+                        <span class="amount-label">Amount Withdrawn</span>
+                        <span class="amount-value">₦{{ withdrawal.withdrawal_amount|floatformat:2|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {# Main Details Card #}
+            <div class="detail-card">
+                <div class="card-header pb-3">
+                    <h2 class="card-title">Transaction Information</h2>
+                </div>
+                
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-section">
+                            <h4 class="section-title">Basic Information</h4>
+                            <div class="detail-rows">
+                                <div class="detail-row">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Withdrawal ID</span>
+                                        <span class="detail-value">{{ withdrawal.pk }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Withdrawal Date</span>
+                                        <span class="detail-value">{{ withdrawal.withdrawal_date|date:"M d, Y \a\t H:i" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h4 class="section-title">Related Records</h4>
+                            <div class="detail-rows">
+                                <div class="detail-row">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Parent Deposit</span>
+                                        <span class="detail-value">
+                                            <a href="{{ withdrawal.deposit.get_absolute_url }}" class="detail-link">
+                                                {{ withdrawal.deposit.deposit_reference }}
+                                            </a>
+                                        </span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Customer</span>
+                                        <span class="detail-value">
+                                            {% if withdrawal.deposit.customer %}
+                                                <a href="{% url 'customer_detail' pk=withdrawal.deposit.customer.pk %}" class="detail-link">
+                                                    {{ withdrawal.deposit.customer.name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="detail-row">
+                                    <div class="detail-item detail-item-full">
+                                        <span class="detail-label">Linked Sale</span>
+                                        <span class="detail-value">
+                                            {% if withdrawal.sale %}
+                                                <a href="{{ withdrawal.sale.get_absolute_url }}" class="detail-link">
+                                                    {{ withdrawal.sale.sale_reference }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Not linked to a specific sale</span>
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h4 class="section-title">Additional Details</h4>
+                            <div class="detail-rows">
+                                <div class="detail-row">
+                                    <div class="detail-item detail-item-full">
+                                        <span class="detail-label">Remarks</span>
+                                        <div class="detail-value remarks-content">
+                                            {% if withdrawal.remarks %}
+                                                {{ withdrawal.remarks|linebreaksbr }}
+                                            {% else %}
+                                                <span class="text-muted">No remarks provided</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h4 class="section-title">System Information</h4>
+                            <div class="detail-rows">
+                                <div class="detail-row">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Created</span>
+                                        <span class="detail-value timestamp">{{ withdrawal.created_at|date:"M d, Y \a\t H:i" }}</span>
+                                    </div>
+                                    {% if withdrawal.updated_at != withdrawal.created_at %}
+                                    <div class="detail-item">
+                                        <span class="detail-label">Last Updated</span>
+                                        <span class="detail-value timestamp">{{ withdrawal.updated_at|date:"M d, Y \a\t H:i" }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Action Buttons Card #}
+            <div class="actions-card">
+                <div class="actions-content">
+                    {% if withdrawal.withdrawal_status != 'cancelled' %}
+                        {# Edit Button #}
+                        {% if withdrawal.sale %}
+                            <button class="btn btn-primary" disabled title="This withdrawal is linked to Sale '{{ withdrawal.sale.sale_reference }}' and cannot be edited directly.">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"/>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                </svg>
+                                Edit Withdrawal
+                            </button>
+                        {% else %}
+                            <a href="{% url 'withdrawal_edit' withdrawal_id=withdrawal.pk %}" class="btn btn-primary">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 20h9"/>
+                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                                </svg>
+                                Edit Withdrawal
+                            </a>
+                        {% endif %}
+
+                        {# Cancel Button #}
+                        {% if withdrawal.sale %}
+                            <button class="btn btn-danger" disabled title="This withdrawal is linked to Sale '{{ withdrawal.sale.sale_reference }}'. To reverse, cancel the Sale.">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                                Cancel Withdrawal
+                            </button>
+                        {% else %}
+                            <a href="{% url 'withdrawal_cancel' withdrawal_id=withdrawal.pk %}" class="btn btn-danger">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                                Cancel Withdrawal
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <button class="btn btn-secondary" disabled title="Withdrawal is already cancelled">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20h9"/>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                            </svg>
+                            Edit Withdrawal
+                        </button>
+                        <button class="btn btn-danger" disabled title="Withdrawal is already cancelled">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            Cancel Withdrawal
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Enhanced CSS Variables */
+:root {
+    --primary-color: #f97316;
+    --primary-hover: #ea580c;
+    --primary-light: #fed7aa;
+    --success-color: #10b981;
+    --success-light: #d1fae5;
+    --warning-color: #f59e0b;
+    --warning-light: #fef3c7;
+    --danger-color: #ef4444;
+    --danger-light: #fee2e2;
+    --info-color: #3b82f6;
+    --info-light: #dbeafe;
+    
+    /* Gray Scale */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    /* Shadows */
+    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    
+    /* Border Radius */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    
+    /* Spacing */
+    --space-xs: 0.5rem;
+    --space-sm: 0.75rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+}
+
+/* Base Layout */
+.content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-xl) var(--space-md);
+    background: var(--gray-50);
+    min-height: 100vh;
+}
+
+/* Header Styling */
+.page-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-2xl);
+    padding: var(--space-xl) 0;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+.header-icon.withdrawal-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 1rem;
+    color: var(--gray-600);
+    font-weight: 500;
+}
+
+.withdrawal-id {
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.separator {
+    color: var(--gray-400);
+    font-weight: 300;
+}
+
+.deposit-ref {
+    color: var(--gray-600);
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    background: white;
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    color: var(--gray-700);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Main Content */
+.detail-container {
+    display: flex;
+    justify-content: center;
+}
+
+.main-content {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+/* Status Card */
+.status-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.status-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xl);
+    background: linear-gradient(135deg, var(--gray-50), white);
+}
+
+.status-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.status-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-completed {
+    background: var(--success-light);
+    color: #065f46;
+    border: 1px solid var(--success-color);
+}
+
+.status-completed .status-indicator {
+    background: var(--success-color);
+}
+
+.status-cancelled {
+    background: var(--danger-light);
+    color: #7f1d1d;
+    border: 1px solid var(--danger-color);
+}
+
+.status-cancelled .status-indicator {
+    background: var(--danger-color);
+}
+
+.status-pending {
+    background: var(--warning-light);
+    color: #78350f;
+    border: 1px solid var(--warning-color);
+}
+
+.status-pending .status-indicator {
+    background: var(--warning-color);
+}
+
+.amount-display {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.amount-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.amount-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--danger-color);
+    line-height: 1;
+}
+
+/* Detail Card */
+.detail-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: var(--space-xl) var(--space-xl) 0;
+    border-bottom: none;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.card-body {
+    padding: var(--space-xl);
+    padding-top: var(--space-lg);
+}
+
+.detail-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+}
+
+.detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--gray-100);
+}
+
+.detail-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.detail-item-full {
+    grid-column: 1 / -1;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+}
+
+.detail-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--gray-800);
+    line-height: 1.5;
+}
+
+.detail-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.detail-link:hover {
+    color: var(--primary-hover);
+    border-bottom-color: var(--primary-color);
+}
+
+.text-muted {
+    color: var(--gray-500);
+    font-style: italic;
+}
+
+.timestamp {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+.remarks-content {
+    background: var(--gray-50);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-200);
+    line-height: 1.6;
+}
+
+/* Actions Card */
+.actions-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+}
+
+.actions-content {
+    padding: var(--space-xl);
+    display: flex;
+    gap: var(--space-md);
+    justify-content: flex-end;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-xs);
+    min-width: 140px;
+    justify-content: center;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--gray-300);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content {
+        padding: var(--space-md);
+    }
+    
+    .page-header-modern {
+        flex-direction: column;
+        gap: var(--space-lg);
+        align-items: stretch;
+        text-align: center;
+    }
+    
+    .header-content {
+        justify-content: center;
+    }
+    
+    .header-actions {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .page-title {
+        font-size: 1.75rem;
+    }
+    
+    .page-subtitle {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .status-content {
+        flex-direction: column;
+        gap: var(--space-lg);
+        text-align: center;
+    }
+    
+    .amount-display {
+        text-align: center;
+    }
+    
+    .amount-value {
+        font-size: 1.75rem;
+    }
+    
+    .detail-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-lg);
+    }
+    
+    .actions-content {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    .section-title {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-icon.withdrawal-icon {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .amount-value {
+        font-size: 1.5rem;
+    }
+    
+    .detail-grid {
+        gap: var(--space-xl);
+    }
+    
+    .detail-section {
+        gap: var(--space-md);
+    }
+}
+</style>
+{% endblock %}

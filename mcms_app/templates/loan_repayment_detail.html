@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Repayment Detail: ID {{ repayment.pk }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {# Modern Header #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon" style="background: linear-gradient(135deg, var(--success-color), #057a55);"> {# Green for Repayments (positive financial action) #}
+                <svg width="40px" height="40px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 9C11.4477 9 11 9.44771 11 10V15.5856L9.70711 14.2928C9.3166 13.9024 8.68343 13.9024 8.29292 14.2928C7.90236 14.6834 7.90236 15.3165 8.29292 15.7071L11.292 18.7063C11.6823 19.0965 12.3149 19.0968 12.7055 18.707L15.705 15.7137C16.0955 15.3233 16.0955 14.69 15.705 14.2996C15.3145 13.909 14.6814 13.909 14.2908 14.2996L13 15.5903V10C13 9.44771 12.5523 9 12 9Z" fill="#ffffff"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M21 1C22.6569 1 24 2.34315 24 4V8C24 9.65685 22.6569 11 21 11H19V20C19 21.6569 17.6569 23 16 23H8C6.34315 23 5 21.6569 5 20V11H3C1.34315 11 0 9.65685 0 8V4C0 2.34315 1.34315 1 3 1H21ZM22 8C22 8.55228 21.5523 9 21 9H19V7H20C20.5523 7 21 6.55229 21 6C21 5.44772 20.5523 5 20 5H4C3.44772 5 3 5.44772 3 6C3 6.55229 3.44772 7 4 7H5V9H3C2.44772 9 2 8.55228 2 8V4C2 3.44772 2.44772 3 3 3H21C21.5523 3 22 3.44772 22 4V8ZM7 7V20C7 20.5523 7.44772 21 8 21H16C16.5523 21 17 20.5523 17 20V7H7Z" fill="#ffffff"></path> </g></svg>
+
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">Loan Repayment Details</h1>
+                <p class="page-subtitle">For Loan: {{ repayment.loan.loan_reference }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'loan_repayment_list' %}" class="btn-secondary-outline">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 19-7-7 7-7"/>
+                    <path d="M19 12H5"/>
+                </svg>
+                Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-container row justify-content-center"> {# Centering the card #}
+        <div class="main-content col-lg-10 col-md-12"> {# Wider card for better layout #}
+            <div class="detail-card">
+                <div class="card-header">
+                    <div class="card-header-content pb-3">
+                        <h2 class="card-title">Repayment Information</h2>
+                        {# Repayments typically don't have a status themselves other than existing or deleted #}
+                        {# If you add a status to LoanRepayment model, a badge can go here #}
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="detail-grid">
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Repayment ID</span>
+                                <span class="detail-value">{{ repayment.pk }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Repayment Amount</span>
+                                <span class="detail-value highlight-value success">₦{{ repayment.repayment_amount|floatformat:2|intcomma }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Parent Loan</span>
+                                <span class="detail-value">
+                                    <a href="{{ repayment.loan.get_absolute_url }}">{{ repayment.loan.loan_reference }}</a>
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Customer</span>
+                                <span class="detail-value">
+                                    <a href="{% if repayment.loan.customer %}{% url 'customer_detail' pk=repayment.loan.customer.pk %}{% endif %}">
+                                        {{ repayment.loan.customer.name|default:"N/A" }}
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                             <div class="detail-item">
+                                <span class="detail-label">Repayment Date</span>
+                                <span class="detail-value">{{ repayment.repayment_date|date:"M d, Y H:i" }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Timestamps</span>
+                                <span class="detail-value text-muted" style="font-size: 0.8rem;">
+                                    Recorded: {{ repayment.created_at|date:"M d, Y H:i"|default:"N/A" }}<br>
+                                    {% if repayment.updated_at != repayment.created_at %}
+                                        Last Updated: {{ repayment.updated_at|date:"M d, Y H:i"|default:"N/A" }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                         <div class="detail-item detail-item-full">
+                            <span class="detail-label">Remarks</span>
+                            <span class="detail-value">{{ repayment.remarks|default_if_none:"N/A"|linebreaksbr }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Action Buttons as Card Footer #}
+                <div class="card-footer text-end bg-transparent border-top-0 pt-0 pb-3 px-3">
+                    {% if repayment.loan.loan_status != 'repaid' and repayment.loan.loan_status != 'cancelled' %}
+                        <a href="{% url 'loan_repayment_edit' repayment_id=repayment.pk %}" class="btn btn-primary me-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            Edit Repayment
+                        </a>
+                        <a href="{% url 'loan_repayment_delete_confirm' repayment_id=repayment.pk %}" class="btn btn-danger">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            Delete Repayment
+                        </a>
+                    {% else %}
+                        <button class="btn btn-secondary me-2" disabled title="Parent loan is {{ repayment.loan.get_loan_status_display }}">Edit Repayment</button>
+                        <button class="btn btn-danger" disabled title="Parent loan is {{ repayment.loan.get_loan_status_display }}">Delete Repayment</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* --- Paste the FULL CSS from motorcycle_detail.html or a shared CSS file here --- */
+/* This ensures all :root variables and utility classes are available. */
+
+/* CSS Variables (Example, ensure these match your established theme) */
+:root {
+    --primary-color: #f97316; /* Orange */
+    --primary-hover: #ea580c;
+    --success-color: #10b981; /* Green */
+    --warning-color: #f59e0b; /* Amber */
+    --danger-color: #ef4444;  /* Red */
+    --info-color: #3b82f6;    /* Blue */
+    --purple-color: #8b5cf6;  /* Purple for Loans */
+    --purple-hover: #7c3aed;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-300: #d1d5db;
+    --gray-400: #9ca3af; --gray-500: #6b7280; --gray-600: #4b5563; --gray-700: #374151;
+    --gray-800: #1f2937; --gray-900: #111827;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+}
+
+/* Layout */
+.content { max-width: 100%; margin: 0 auto; padding: 2rem 1rem; }
+.page-header-modern { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1.5rem 0; border-bottom: 1px solid var(--gray-200); }
+.header-content { display: flex; align-items: center; gap: 1rem; }
+.header-icon { width: 56px; height: 56px; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; color: white; box-shadow: var(--shadow-md); }
+.header-text { display: flex; flex-direction: column; gap: 0.25rem; }
+.page-title { font-size: 1.875rem; font-weight: 700; color: var(--gray-900); margin: 0; line-height: 1.2; }
+.page-subtitle { font-size: 1.125rem; color: var(--gray-600); margin: 0; font-weight: 500; }
+.header-actions .btn-secondary-outline { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); background: white; color: var(--gray-700); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease; }
+.header-actions .btn-secondary-outline:hover { background: var(--gray-50); border-color: var(--gray-400); }
+
+/* Cards */
+.detail-card { background: white; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-200); margin-bottom: 1.5rem; overflow: hidden; }
+.detail-card:hover { box-shadow: var(--shadow-md); }
+.card-header { padding: 1.5rem 1.5rem 0; border-bottom: none; }
+.card-header-content { display: flex; justify-content: space-between; align-items: center; }
+.card-title { font-size: 1.25rem; font-weight: 600; color: var(--gray-900); margin: 0; }
+.card-body { padding: 1.5rem; padding-top: 1rem; }
+.card-footer.text-end { background-color: transparent; border-top: 1px solid var(--gray-100); padding-top: 1rem; padding-bottom: 1rem; }
+
+/* Detail Grid */
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem 2rem; }
+.detail-group { display: flex; flex-direction: column; gap: 1rem; }
+.detail-item { display: flex; flex-direction: column; gap: 0.35rem; }
+.detail-label { font-size: 0.8rem; font-weight: 500; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.025em; }
+.detail-value { font-size: 0.95rem; font-weight: 600; color: var(--gray-800); }
+.detail-value.highlight-value.success { font-weight: 700; color: var(--success-color); font-size:1.1em; } /* Green for repayment amount */
+.detail-value a { color: var(--primary-color); text-decoration: none; }
+.detail-value a:hover { text-decoration: underline; }
+.detail-item-full { grid-column: 1 / -1; }
+
+/* Buttons */
+.action-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; padding: 1.5rem 0 0 0; } /* For buttons not in card-footer */
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--border-radius); font-size: 0.875rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
+.btn:disabled, .btn.disabled { opacity: 0.5; cursor: not-allowed !important; }
+.btn-primary { background: var(--primary-color); color: white; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); box-shadow: var(--shadow-md); }
+.btn-danger { background: var(--danger-color); color: white; }
+.btn-danger:hover:not(:disabled) { background: #dc2626; box-shadow: var(--shadow-md); }
+.btn-secondary { background: var(--gray-200); color: var(--gray-700); }
+.btn-secondary:hover:not(:disabled) { background: var(--gray-300); }
+.btn svg { vertical-align: middle; margin-right: 0.35em; width: 1em; height: 1em; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .content { padding: 1rem; }
+    .page-header-modern { flex-direction: column; gap: 1rem; align-items: stretch; }
+    .header-content { justify-content: center; }
+    .header-actions { display: flex; justify-content: center; }
+    .detail-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .card-footer.text-end { text-align: center !important; }
+    .card-footer.text-end .btn { margin-bottom: 0.5rem; width:100%;}
+    .card-footer.text-end .btn:last-child { margin-bottom: 0;}
+}
+</style>
+{% endblock %}

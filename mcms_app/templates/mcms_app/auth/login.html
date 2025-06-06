@@ -1,0 +1,408 @@
+{% extends "mcms_app/auth/base_auth.html" %}
+{% load static %}
+
+{% block title %}Login - MCMS{% endblock %}
+
+{% block auth_content %}
+<div class="login-container">
+    <!-- Logo Section -->
+    <div class="login-header">
+        <div class="logo-section">
+            <div class="company-logo">
+                <span class="logo-text-1">AYOTOLA</span>
+                <span class="logo-text-2">& SONS</span>
+            </div>
+        </div>
+        <h2 class="login-title">Welcome Back</h2>
+        <p class="login-subtitle">Sign in to your account</p>
+    </div>
+
+    <!-- Error Messages -->
+    {% if form.non_field_errors or form.username.errors or form.password.errors %}
+        <div class="error-container">
+            <div class="error-icon">⚠</div>
+            <div class="error-text">
+                {% if form.non_field_errors %}
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                {% else %}
+                    Please check your credentials and try again
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- {% if messages %}
+        {% for message in messages %}
+            <div class="message-container message-{{ message.tags }}">
+                <div class="message-text">{{ message }}</div>
+            </div>
+        {% endfor %}
+    {% endif %} -->
+
+    <!-- Login Form -->
+    <form method="post" action="{% url 'login' %}" class="login-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+        
+        <div class="input-group">
+            <div class="input-wrapper">
+                <input 
+                    type="text" 
+                    id="{{ form.username.id_for_label }}" 
+                    name="{{ form.username.name }}"
+                    class="form-input {% if form.username.errors %}error{% endif %}"
+                    placeholder=" "
+                    value="{{ form.username.value|default:'' }}"
+                    required
+                >
+                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                <div class="input-border"></div>
+            </div>
+            {% if form.username.errors %}
+                <div class="field-error">{{ form.username.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="input-group">
+            <div class="input-wrapper">
+                <input 
+                    type="password" 
+                    id="{{ form.password.id_for_label }}" 
+                    name="{{ form.password.name }}"
+                    class="form-input {% if form.password.errors %}error{% endif %}"
+                    placeholder=" "
+                    required
+                >
+                <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                <div class="input-border"></div>
+            </div>
+            {% if form.password.errors %}
+                <div class="field-error">{{ form.password.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="login-button">
+            <span class="button-text">Sign In</span>
+            <div class="button-loader"></div>
+        </button>
+    </form>
+</div>
+
+<style>
+/* Modern Login Form Styles */
+.login-container {
+    max-width: 600px; /* Made wider - 1.5x of 400px */
+    margin: 0 auto;
+    padding: 50px 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* Logo and Header */
+.login-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.logo-section {
+    margin-bottom: 30px;
+}
+
+.company-logo {
+    display: inline-block;
+    text-align: center;
+}
+
+.logo-text-1 {
+    display: block;
+    font-size: 32px;
+    font-weight: 800;
+    color: #333; /* Changed from black to dark gray for better readability */
+    letter-spacing: 2px;
+    line-height: 1;
+}
+
+.logo-text-2 {
+    display: block;
+    font-size: 18px;
+    font-weight: 400;
+    color: #ff8c42;
+    letter-spacing: 1px;
+    margin-top: -2px;
+}
+
+.login-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333; /* Changed from black to dark gray */
+    margin: 0 0 8px 0;
+}
+
+.login-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* Error Messages */
+.error-container {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    animation: slideIn 0.3s ease;
+}
+
+.error-icon {
+    font-size: 18px;
+    margin-right: 12px;
+    color: #ff3b30;
+}
+
+.error-text {
+    color: #ff3b30;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.message-container {
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    animation: slideIn 0.3s ease;
+}
+
+.message-success {
+    background: rgba(52, 199, 89, 0.1);
+    border: 1px solid rgba(52, 199, 89, 0.2);
+}
+
+.message-info {
+    background: rgba(0, 122, 255, 0.1);
+    border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.message-text {
+    color: #34c759;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Form Styles */
+.login-form {
+    width: 100%;
+}
+
+.input-group {
+    margin-bottom: 24px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.form-input {
+    width: 100%;
+    height: 56px;
+    padding: 16px 16px 8px 16px;
+    border: 2px solid #f0f0f0;
+    border-radius: 12px;
+    font-size: 16px;
+    color: #333; /* Changed from black to dark gray */
+    background: white;
+    transition: all 0.3s ease;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    border-color: #ff8c42;
+    box-shadow: 0 0 0 4px rgba(255, 140, 66, 0.1);
+}
+
+.form-input.error {
+    border-color: #ff3b30;
+    box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1);
+}
+
+.form-input:focus + .form-label,
+.form-input:not(:placeholder-shown) + .form-label {
+    top: 12px;
+    font-size: 12px;
+    color: #ff8c42;
+    font-weight: 600;
+}
+
+.form-input.error:focus + .form-label,
+.form-input.error:not(:placeholder-shown) + .form-label {
+    color: #ff3b30;
+}
+
+.form-label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #999;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.field-error {
+    color: #ff3b30;
+    font-size: 13px;
+    margin-top: 8px;
+    margin-left: 4px;
+    font-weight: 500;
+}
+
+/* Login Button */
+.login-button {
+    width: 100%;
+    height: 56px;
+    background: linear-gradient(135deg, #ff8c42, #ff7a28);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.login-button:hover {
+    background: linear-gradient(135deg, #ff7a28, #ff6914);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 140, 66, 0.4);
+}
+
+.login-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+}
+
+.button-text {
+    transition: opacity 0.3s ease;
+}
+
+.button-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    opacity: 0;
+    animation: spin 1s linear infinite;
+}
+
+.login-button.loading .button-text {
+    opacity: 0;
+}
+
+.login-button.loading .button-loader {
+    opacity: 1;
+}
+
+/* Animations */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .login-container {
+        margin: 20px;
+        padding: 40px 25px; /* Adjusted for wider container */
+        border-radius: 12px;
+        max-width: 90%; /* Ensure it fits on mobile */
+    }
+    
+    .logo-text-1 {
+        font-size: 28px;
+    }
+    
+    .logo-text-2 {
+        font-size: 16px;
+    }
+    
+    .login-title {
+        font-size: 24px;
+    }
+    
+    .login-subtitle {
+        font-size: 14px;
+    }
+}
+
+/* Dark mode support - Removed since you prefer white background */
+/* @media (prefers-color-scheme: dark) {
+    .login-container {
+        background: #1a1a1a;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .login-title {
+        color: white;
+    }
+    
+    .login-subtitle {
+        color: #999;
+    }
+    
+    .form-input {
+        background: #2a2a2a;
+        border-color: #444;
+        color: white;
+    }
+    
+    .form-input:focus {
+        border-color: #ff8c42;
+        background: #2a2a2a;
+    }
+} */
+</style>
+
+<script>
+// Add loading state to login button
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.login-form');
+    const button = document.querySelector('.login-button');
+    
+    if (form && button) {
+        form.addEventListener('submit', function() {
+            button.classList.add('loading');
+            button.disabled = true;
+        });
+    }
+});
+</script>
+{% endblock auth_content %}
