@@ -15,9 +15,10 @@ from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from datetime import timedelta
+import datetime
 from django.utils.safestring import mark_safe
 import json
+from operator import itemgetter
 
 
 LOW_STOCK_THRESHOLD = 2
@@ -2144,3 +2145,146 @@ def sale_cancel_view(request, pk):
 
     # If GET, show confirmation page
     return render(request, 'generic_cancel_confirm.html', context)
+
+
+class ActivityLogView(LoginRequiredMixin, TemplateView):
+    template_name = 'reports/activity_log.html'
+    paginate_by = 20
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # 1. Handle Filtering
+        defaults = {'period': 'today', 'view_type': 'summary'}
+        filter_form = ActivityLogFilterForm(self.request.GET or defaults)
+        
+        period = 'today'
+        view_type = 'summary'
+
+        if filter_form.is_valid():
+            period = filter_form.cleaned_data['period']
+            view_type = filter_form.cleaned_data['view_type']
+        
+        is_summary_view = (view_type == 'summary')
+
+        # 2. Calculate Date Range
+        today = timezone.now().date()
+        if period == 'today':
+            start_date = today
+            end_date = today + datetime.timedelta(days=1)
+        elif period == 'yesterday':
+            start_date = today - datetime.timedelta(days=1)
+            end_date = today
+        elif period == 'this_week':
+            start_date = today - datetime.timedelta(days=today.weekday())
+            end_date = start_date + datetime.timedelta(days=7)
+        elif period == 'last_7_days':
+            start_date = today - datetime.timedelta(days=6)
+            end_date = today + datetime.timedelta(days=1)
+        else: # this_month
+            start_date = today.replace(day=1)
+            next_month = (start_date + datetime.timedelta(days=32)).replace(day=1)
+            end_date = next_month
+        
+        start_datetime = timezone.make_aware(datetime.datetime.combine(start_date, datetime.datetime.min.time()))
+        end_datetime = timezone.make_aware(datetime.datetime.combine(end_date, datetime.datetime.min.time()))
+
+        # 3. Aggregate or Detail Activities
+        if is_summary_view:
+            # --- SUMMARY VIEW LOGIC ---
+            summary_data = {
+                'New Sales': {'count': 0, 'total_amount': Decimal('0.00')},
+                'New Supplier Payments': {'count': 0, 'total_amount': Decimal('0.00')},
+                'New Deliveries': {'count': 0, 'total_amount': None},
+                'New Deposits': {'count': 0, 'total_amount': Decimal('0.00')},
+                'New Withdrawals': {'count': 0, 'total_amount': Decimal('0.00')},
+                'New Loans': {'count': 0, 'total_amount': Decimal('0.00')},
+                'New Loan Repayments': {'count': 0, 'total_amount': Decimal('0.00')},
+                'Inventory Updates': {'count': 0, 'total_amount': None},
+                'New Motorcycle Models': {'count': 0, 'total_amount': None},
+                'New Suppliers': {'count': 0, 'total_amount': None},
+            }
+
+            sales_qs = Sale.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            summary_data['New Sales']['count'] = sales_qs.count()
+            summary_data['New Sales']['total_amount'] = sales_qs.aggregate(total=Sum('final_price'))['total'] or Decimal('0.00')
+
+            payments_qs = SupplierPayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            summary_data['New Supplier Payments']['count'] = payments_qs.count()
+            summary_data['New Supplier Payments']['total_amount'] = payments_qs.aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
+
+            summary_data['New Deliveries']['count'] = SupplierDelivery.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).count()
+            
+            deposits_qs = Deposit.objects.filter(deposit_date__gte=start_datetime, deposit_date__lt=end_datetime)
+            summary_data['New Deposits']['count'] = deposits_qs.count()
+            summary_data['New Deposits']['total_amount'] = deposits_qs.aggregate(total=Sum('deposit_amount'))['total'] or Decimal('0.00')
+
+            withdrawals_qs = Withdrawal.objects.filter(withdrawal_date__gte=start_datetime, withdrawal_date__lt=end_datetime)
+            summary_data['New Withdrawals']['count'] = withdrawals_qs.count()
+            summary_data['New Withdrawals']['total_amount'] = withdrawals_qs.aggregate(total=Sum('withdrawal_amount'))['total'] or Decimal('0.00')
+
+            loans_qs = Loan.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            summary_data['New Loans']['count'] = loans_qs.count()
+            summary_data['New Loans']['total_amount'] = loans_qs.aggregate(total=Sum('loan_amount'))['total'] or Decimal('0.00')
+
+            repayments_qs = LoanRepayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            summary_data['New Loan Repayments']['count'] = repayments_qs.count()
+            summary_data['New Loan Repayments']['total_amount'] = repayments_qs.aggregate(total=Sum('repayment_amount'))['total'] or Decimal('0.00')
+            
+            summary_data['Inventory Updates']['count'] = InventoryTransaction.objects.filter(transaction_date__gte=start_datetime, transaction_date__lt=end_datetime).count()
+            summary_data['New Motorcycle Models']['count'] = Motorcycle.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).count()
+            summary_data['New Suppliers']['count'] = Supplier.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).count()
+            
+            context['summary_data'] = {k: v for k, v in summary_data.items() if v['count'] > 0}
+            context['is_paginated'] = False
+
+        else:
+            # --- DETAILED VIEW LOGIC ---
+            raw_activities = []
+            sales = Sale.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('customer', 'motorcycle')
+            for sale in sales:
+                raw_activities.append({'timestamp': sale.created_at, 'activity_type': 'New Sale', 'description': f"Sale <a href='{sale.get_absolute_url()}'>{sale.sale_reference}</a> to {sale.customer.name} for ₦{sale.final_price:,.2f}"})
+            payments = SupplierPayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('supplier')
+            for p in payments:
+                raw_activities.append({'timestamp': p.created_at, 'activity_type': 'New Supplier Payment', 'description': f"Payment <a href='{reverse('payment_detail', args=[p.pk])}'>{p.payment_reference}</a> of ₦{p.amount_paid:,.2f} to {p.supplier.name}"})
+            deliveries = SupplierDelivery.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('payment__supplier')
+            for d in deliveries:
+                raw_activities.append({'timestamp': d.created_at, 'activity_type': 'New Delivery', 'description': f"Delivery <a href='{d.get_absolute_url()}'>{d.delivery_reference}</a> received from {d.payment.supplier.name}"})
+            deposits = Deposit.objects.filter(deposit_date__gte=start_datetime, deposit_date__lt=end_datetime).select_related('customer')
+            for d in deposits:
+                raw_activities.append({'timestamp': d.deposit_date, 'activity_type': 'New Deposit', 'description': f"Deposit <a href='{d.get_absolute_url()}'>{d.deposit_reference}</a> of ₦{d.deposit_amount:,.2f} from {d.customer.name}"})
+            withdrawals = Withdrawal.objects.filter(withdrawal_date__gte=start_datetime, withdrawal_date__lt=end_datetime).select_related('deposit__customer')
+            for w in withdrawals:
+                raw_activities.append({'timestamp': w.withdrawal_date, 'activity_type': 'New Withdrawal', 'description': f"Withdrawal of ₦{w.withdrawal_amount:,.2f} from {w.deposit.customer.name}'s account (<a href='{w.get_absolute_url()}'>Details</a>)"})
+            loans = Loan.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('customer')
+            for l in loans:
+                raw_activities.append({'timestamp': l.created_at, 'activity_type': 'New Loan', 'description': f"Loan <a href='{l.get_absolute_url()}'>{l.loan_reference}</a> of ₦{l.loan_amount:,.2f} issued to {l.customer.name}"})
+            repayments = LoanRepayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('loan__customer')
+            for r in repayments:
+                raw_activities.append({'timestamp': r.created_at, 'activity_type': 'New Loan Repayment', 'description': f"Repayment of ₦{r.repayment_amount:,.2f} for loan {r.loan.loan_reference} by {r.loan.customer.name} (<a href='{r.get_absolute_url()}'>Details</a>)"})
+            inv_trans = InventoryTransaction.objects.filter(transaction_date__gte=start_datetime, transaction_date__lt=end_datetime).select_related('motorcycle_model')
+            for t in inv_trans:
+                raw_activities.append({'timestamp': t.transaction_date, 'activity_type': 'Inventory Update', 'description': f"{t.get_transaction_type_display()}: {t.quantity} units of {t.motorcycle_model}. Remarks: {t.remarks}"})
+            motorcycles = Motorcycle.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            for m in motorcycles:
+                raw_activities.append({'timestamp': m.created_at, 'activity_type': 'New Motorcycle Model', 'description': f"Model <a href='{m.get_absolute_url()}'>{m}</a> was added to the system."})
+            suppliers = Supplier.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            for s in suppliers:
+                raw_activities.append({'timestamp': s.created_at, 'activity_type': 'New Supplier', 'description': f"Supplier <a href='{reverse('supplier_detail', args=[s.pk])}'>{s.name}</a> was added."})
+            
+            sorted_activities = sorted(raw_activities, key=itemgetter('timestamp'), reverse=True)
+            paginator = Paginator(sorted_activities, self.paginate_by)
+            page_number = self.request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+            
+            context['activities'] = page_obj
+            context['page_obj'] = page_obj
+            context['is_paginated'] = True if paginator.num_pages > 1 else False
+
+        # 4. Final Context
+        context['filter_form'] = filter_form
+        context['title'] = f"Activity Log for {period.replace('_', ' ').title()}"
+        context['print_mode'] = self.request.GET.get('print', 'false').lower() == 'true'
+        context['is_summary_view'] = is_summary_view
+
+        return context

@@ -173,15 +173,7 @@
                             <a href="javascript:void(0);"><img src="{%static 'img/icons/time.svg' %}" alt="img"><span>
                                         Report</span> <span class="menu-arrow"></span></a>
                             <ul>
-                                <li><a href="purchaseorderreport.html">Supplier Payments Report</a></li> 
-                                <li><a href="purchaseorderreport.html">Supplier Delivery Report</a></li> 
-                                <li><a href="inventoryreport.html">Inventory Report</a></li> 
-                                <li><a href="inventoryreport.html">Inventory Transaction Report</a></li> 
-                                <li><a href="salesreport.html">Sales Report</a></li> 
-                                <li><a href="invoicereport.html">Deposit Report</a></li> 
-                                <li><a href="purchasereport.html">Withdrawal Report</a></li> 
-                                <li><a href="supplierreport.html">Loan Report</a></li> 
-                                <li><a href="customerreport.html">Loan Payment Report</a></li> 
+                                <li><a href="{% url 'activity_log' %}">Activity Log</a></li> 
                             </ul>
                         </li>
                     </ul>

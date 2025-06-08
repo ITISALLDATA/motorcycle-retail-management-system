@@ -1,0 +1,1193 @@
+{% extends print_mode|yesno:"reports/print_layout.html,base.html" %}
+{% load humanize %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="content">
+    {% if not print_mode %}
+    {# Modern Header #}
+    <div class="page-header-modern">
+        <div class="header-content">
+            <div class="header-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"> {# Purple gradient for Activity Log #}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" width="40px" height="40px" viewBox="0 0 24 24" stroke="#ffffff" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4"/>
+                </svg>
+            </div>
+            <div class="header-text">
+                <h1 class="page-title">{{ title }}</h1>
+                <p class="page-subtitle">Track and monitor all system activities</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="?{{ request.GET.urlencode }}&print=true" target="_blank" class="btn-back">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                    <path d="M6 14h12v4H6z"/>
+                </svg>
+                Print Report
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="main-container">
+        {# Filter Card #}
+        <div class="detail-card filter-card no-print">
+            <div class="card-header">
+                <div class="card-header-content">
+                    <h2 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/>
+                        </svg>
+                        Filter Activities
+                    </h2>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <form method="get" action="{% url 'activity_log' %}" class="filter-form">
+                    <div class="filter-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">{{ filter_form.period.label }}</span>
+                            <div class="filter-input">
+                                {{ filter_form.period }}
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">{{ filter_form.view_type.label }}</span>
+                            <div class="filter-input">
+                                {{ filter_form.view_type }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            Apply Filter
+                        </button>
+                        <a href="{% url 'activity_log' %}" class="btn btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                            Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# Main Content Card #}
+        <div class="detail-card">
+            <div class="card-header">
+                <div class="card-header-content">
+                    <h2 class="card-title">
+                        {% if is_summary_view %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 3v18h18"/>
+                                <path d="m19 9-5 5-4-4-3 3"/>
+                            </svg>
+                            Activity Summary
+                        {% else %}
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+                            </svg>
+                            Detailed Activity Log
+                        {% endif %}
+                    </h2>
+                    <div class="status-badge status-info">
+                        Last updated: {% now "M d, Y - H:i" %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                {% if is_summary_view %}
+                    {# Enhanced Summary View #}
+                    {% if summary_data %}
+                        <div class="activities-grid">
+                            {% for activity_type, data in summary_data.items %}
+                                <div class="activity-summary-card">
+                                    <div class="activity-header">
+                                        <div class="activity-icon">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="3"/>
+                                                <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+                                            </svg>
+                                        </div>
+                                        <div class="activity-info">
+                                            <h3 class="activity-title">{{ activity_type }}</h3>
+                                            <div class="activity-count">{{ data.count }} activities</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-value">
+                                        {% if data.total_amount is not None %}
+                                            <span class="amount-value">₦{{ data.total_amount|intcomma }}</span>
+                                        {% else %}
+                                            <span class="no-amount">No monetary value</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M3 3v18h18"/>
+                                <path d="m19 9-5 5-4-4-3 3"/>
+                            </svg>
+                            <h3>No Activities Found</h3>
+                            <p>No activities were recorded for the selected period.</p>
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    {# Enhanced Detailed View #}
+                    {% if activities %}
+                        <div class="activity-list">
+                            {% for activity in activities %}
+                                <div class="activity-item">
+                                    <div class="activity-timeline">
+                                        <div class="timeline-dot"></div>
+                                        <div class="timeline-line"></div>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-detail-header">
+                                            <div class="activity-type-badge">
+                                                {{ activity.activity_type }}
+                                            </div>
+                                            <div class="activity-timestamp">
+                                                <div class="timestamp-date">{{ activity.timestamp|date:"M d, Y" }}</div>
+                                                <div class="timestamp-time">{{ activity.timestamp|date:"H:i A" }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="activity-description">
+                                            {{ activity.description|safe }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+                            </svg>
+                            <h3>No Activities Found</h3>
+                            <p>No activities were recorded for the selected period.</p>
+                            <a href="{% url 'activity_log' %}" class="btn btn-primary">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                </svg>
+                                Reset Filters
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        {# --- CORRECTED PAGINATION LINKS --- #}
+        {% if is_paginated and not print_mode and not is_summary_view %}
+            <div class="pagination-card">
+                <div class="pagination-content">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1&period={{ filter_form.period.value }}&view_type={{ filter_form.view_type.value }}" class="btn btn-outline">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m11 17-5-5 5-5M18 17l-5-5 5-5"/>
+                            </svg>
+                            First
+                        </a>
+                        <a href="?page={{ page_obj.previous_page_number }}&period={{ filter_form.period.value }}&view_type={{ filter_form.view_type.value }}" class="btn btn-outline">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m15 18-6-6 6-6"/>
+                            </svg>
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    <div class="pagination-info">
+                        <span class="current-page">{{ page_obj.number }}</span>
+                        <span class="page-separator">of</span>
+                        <span class="total-pages">{{ page_obj.paginator.num_pages }}</span>
+                    </div>
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}&period={{ filter_form.period.value }}&view_type={{ filter_form.view_type.value }}" class="btn btn-outline">
+                            Next
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}&period={{ filter_form.period.value }}&view_type={{ filter_form.view_type.value }}" class="btn btn-outline">
+                            Last
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="m6 17 5-5-5-5M13 17l5-5-5-5"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* The CSS remains the same as the previous light-mode version */
+    :root {
+        --primary-color: #f97316;
+        --primary-hover: #ea580c;
+        --success-color: #10b981;
+        --success-hover: #059669;
+        --danger-color: #ef4444;
+        --danger-hover: #dc2626;
+        --info-color: #3b82f6;
+        --warning-color: #f59e0b;
+        --purple-color: #8b5cf6;
+        --purple-hover: #7c3aed;
+        
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-800: #1f2937;
+        --gray-900: #111827;
+        
+        --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
+    }
+
+    /* Layout */
+    .content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+        background: var(--gray-50);
+        min-height: 100vh;
+    }
+
+    /* Header */
+    .page-header-modern {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+        background: white;
+        padding: 2rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+
+    .header-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .header-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .page-subtitle {
+        font-size: 1.125rem;
+        color: var(--gray-600);
+        margin: 0;
+        font-weight: 500;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: var(--gray-100);
+        color: var(--gray-700);
+        text-decoration: none;
+        border-radius: var(--radius-md);
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid var(--gray-200);
+    }
+
+    .btn-back:hover {
+        background: var(--gray-200);
+        color: var(--gray-800);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+    }
+
+    /* Main Container */
+    .main-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    /* Cards */
+    .detail-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .detail-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .card-header {
+        padding: 2rem 2rem 0;
+        border-bottom: 1px solid var(--gray-100);
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1.5rem;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-body {
+        padding: 0 2rem 2rem;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: inline-block;
+    }
+
+    .status-info {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    /* Filter Card */
+    .filter-card {
+        margin-bottom: 0;
+    }
+
+    .filter-form {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1.25rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--gray-100);
+        transition: all 0.2s ease;
+    }
+
+    .detail-item:hover {
+        background: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .detail-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .filter-input select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-sm);
+        background: white;
+        font-size: 0.875rem;
+        color: var(--gray-700);
+        transition: all 0.2s ease;
+    }
+
+    .filter-input select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding: 1.5rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
+        margin-top: 1rem;
+    }
+
+    /* Buttons */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-xs);
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+    }
+
+    .btn-secondary {
+        background: var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+        background: var(--gray-300);
+    }
+
+    .btn-outline {
+        background: white;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-300);
+    }
+
+    .btn-outline:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-400);
+    }
+
+    /* Activities Grid (Summary View) */
+    .activities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .activity-summary-card {
+        padding: 1.5rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--gray-200);
+        transition: all 0.2s ease;
+    }
+
+    .activity-summary-card:hover {
+        background: white;
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-2px);
+    }
+
+    .activity-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .activity-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--purple-color), var(--purple-hover));
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .activity-info {
+        flex: 1;
+    }
+
+    .activity-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 0.25rem 0;
+    }
+
+    .activity-count {
+        font-size: 0.875rem;
+        color: var(--gray-600);
+    }
+
+    .activity-value {
+        text-align: right;
+    }
+
+    .amount-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--success-color);
+    }
+
+    .no-amount {
+        font-size: 0.875rem;
+        color: var(--gray-500);
+        font-style: italic;
+    }
+
+    /* Activity List (Detailed View) */
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem 0;
+        border-bottom: 1px solid var(--gray-100);
+        transition: all 0.2s ease;
+    }
+
+    .activity-item:hover {
+        background: var(--gray-50);
+        margin: 0 -1.5rem;
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-timeline {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+        padding-top: 0.5rem;
+    }
+
+    .timeline-dot {
+        width: 12px;
+        height: 12px;
+        background: var(--purple-color);
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+    }
+
+    .timeline-line {
+        width: 2px;
+        flex: 1;
+        background: var(--gray-200);
+        margin-top: 1rem;
+        min-height: 2rem;
+    }
+
+    .activity-item:last-child .timeline-line {
+        display: none;
+    }
+
+    .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+        gap: 1rem;
+    }
+
+    .activity-type-badge {
+        padding: 0.5rem 1rem;
+        background: var(--purple-color);
+        color: white;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        flex-shrink: 0;
+    }
+
+    .activity-timestamp {
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .timestamp-date {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .timestamp-time {
+        font-size: 0.75rem;
+        color: var(--gray-500);
+        margin-top: 0.25rem;
+    }
+
+    .activity-description {
+        color: var(--gray-700);
+        line-height: 1.6;
+    }
+
+    .activity-description p {
+        margin: 0 0 0.5rem 0;
+    }
+
+    .activity-description p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Pagination */
+    .pagination-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--gray-200);
+        padding: 1.5rem 2rem;
+    }
+
+    .pagination-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .pagination-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+
+    .current-page {
+        color: var(--primary-color);
+        font-size: 1.125rem;
+    }
+
+    .page-separator {
+        color: var(--gray-400);
+        font-size: 0.875rem;
+    }
+
+    .total-pages {
+        color: var(--gray-600);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--gray-500);
+    }
+
+    .empty-state svg {
+        opacity: 0.3;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin: 0 0 0.75rem 0;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        margin: 0 0 1.5rem 0;
+    }
+
+    /* Print Styles */
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        .content {
+            background: white;
+            padding: 1rem;
+        }
+        
+        .detail-card {
+            border: 1px solid var(--gray-300) !important;
+            box-shadow: none !important;
+            margin-bottom: 1rem;
+        }
+        
+        .activity-item:hover {
+            background: transparent;
+            margin: 0;
+            padding: 1.5rem 0;
+        }
+        
+        .activity-type-badge {
+            border: 1px solid var(--purple-color);
+            background: white;
+            color: var(--purple-color);
+        }
+    }
+
+    /* Responsive Design - Continuation */
+    @media (max-width: 768px) {
+        .content {
+            padding: 1rem;
+        }
+        
+        .page-header-modern {
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        
+        .header-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .header-icon {
+            width: 56px;
+            height: 56px;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+        }
+        
+        .page-subtitle {
+            font-size: 1rem;
+        }
+        
+        .header-actions {
+            width: 100%;
+        }
+        
+        .btn-back {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .card-header {
+            padding: 1.5rem 1.5rem 0;
+        }
+        
+        .card-header-content {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .card-body {
+            padding: 0 1.5rem 1.5rem;
+        }
+        
+        .filter-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .filter-actions {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .filter-actions .btn {
+            width: 100%;
+        }
+        
+        .activities-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .activity-summary-card {
+            padding: 1.25rem;
+        }
+        
+        .activity-header {
+            gap: 0.75rem;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .activity-title {
+            font-size: 1rem;
+        }
+        
+        .amount-value {
+            font-size: 1.25rem;
+        }
+        
+        .activity-item {
+            gap: 1rem;
+            padding: 1.25rem 0;
+        }
+        
+        .activity-item:hover {
+            margin: 0 -1rem;
+            padding: 1.25rem 1rem;
+        }
+        
+        .activity-detail-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .activity-timestamp {
+            text-align: left;
+        }
+        
+        .pagination-content {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .pagination-card {
+            padding: 1rem;
+        }
+        
+        .empty-state {
+            padding: 3rem 1rem;
+        }
+        
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .content {
+            padding: 0.75rem;
+        }
+        
+        .page-header-modern {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+        }
+        
+        .header-icon {
+            width: 48px;
+            height: 48px;
+        }
+        
+        .page-title {
+            font-size: 1.5rem;
+        }
+        
+        .page-subtitle {
+            font-size: 0.875rem;
+        }
+        
+        .detail-card {
+            border-radius: var(--radius-md);
+        }
+        
+        .card-header,
+        .card-body {
+            padding: 1rem;
+        }
+        
+        .card-header {
+            padding-bottom: 0;
+            margin-bottom: 1rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+        }
+        
+        .detail-item {
+            padding: 1rem;
+        }
+        
+        .filter-actions {
+            padding: 1rem;
+            margin-top: 0.75rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1rem;
+            min-width: auto;
+            font-size: 0.8125rem;
+        }
+        
+        .activity-summary-card {
+            padding: 1rem;
+        }
+        
+        .activity-header {
+            margin-bottom: 0.75rem;
+        }
+        
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+        }
+        
+        .activity-title {
+            font-size: 0.9375rem;
+        }
+        
+        .activity-count {
+            font-size: 0.8125rem;
+        }
+        
+        .amount-value {
+            font-size: 1.125rem;
+        }
+        
+        .activity-item {
+            gap: 0.75rem;
+            padding: 1rem 0;
+        }
+        
+        .activity-item:hover {
+            margin: 0 -0.75rem;
+            padding: 1rem 0.75rem;
+        }
+        
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+        }
+        
+        .activity-type-badge {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.6875rem;
+        }
+        
+        .timestamp-date {
+            font-size: 0.8125rem;
+        }
+        
+        .timestamp-time {
+            font-size: 0.6875rem;
+        }
+        
+        .activity-description {
+            font-size: 0.875rem;
+        }
+        
+        .pagination-content {
+            justify-content: space-between;
+        }
+        
+        .pagination-info {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .current-page {
+            font-size: 1rem;
+        }
+    }
+
+    /* Animation enhancements */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .activity-item {
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .activity-item:nth-child(even) {
+        animation-delay: 0.1s;
+    }
+
+    .activity-item:nth-child(odd) {
+        animation-delay: 0.05s;
+    }
+
+    .timeline-dot {
+        animation: pulse 2s infinite;
+    }
+
+    /* Loading states */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .loading .timeline-dot {
+        animation: pulse 1s infinite;
+    }
+
+    /* High contrast mode support */
+    @media (prefers-contrast: high) {
+        .detail-card {
+            border-width: 2px;
+        }
+        
+        .activity-type-badge {
+            border: 2px solid currentColor;
+        }
+        
+        .timeline-dot {
+            border: 2px solid var(--purple-color);
+        }
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+        
+        .btn:hover:not(:disabled),
+        .detail-card:hover,
+        .activity-summary-card:hover {
+            transform: none;
+        }
+    }
+
+    /* Focus styles for accessibility */
+    .btn:focus-visible,
+    .filter-input select:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+
+    /* Improved text readability */
+    .activity-description {
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Custom scrollbar for activity list */
+    .activity-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .activity-list::-webkit-scrollbar-track {
+        background: var(--gray-100);
+        border-radius: 3px;
+    }
+
+    .activity-list::-webkit-scrollbar-thumb {
+        background: var(--gray-300);
+        border-radius: 3px;
+    }
+
+    .activity-list::-webkit-scrollbar-thumb:hover {
+        background: var(--gray-400);
+    }
+</style>
+{%endblock%}

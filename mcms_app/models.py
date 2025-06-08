@@ -16,7 +16,6 @@ import datetime
 
 
 
-
 class Motorcycle(models.Model):
     ACTIVE = 'ACTIVE'
     DISCONTINUED = 'DISCONTINUED'
@@ -517,6 +516,10 @@ class SupplierDelivery(models.Model):
         if not is_new and old_is_cancelled != self.is_cancelled:
             if self.payment:
                 self.payment.update_completion_status(force_recalculate=True)
+
+    def get_absolute_url(self):
+        return reverse('delivery_detail', kwargs={'pk': self.pk})
+
 
 
 class SupplierDeliveryItem(models.Model):

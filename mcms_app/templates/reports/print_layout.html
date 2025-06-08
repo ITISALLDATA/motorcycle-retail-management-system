@@ -1,0 +1,451 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ayotola & Sons</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{%static 'img/lgsm.png' %}">
+    <link rel="stylesheet" href="{%static 'css/bootstrap.min.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --accent-color: #f1f5f9;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container-fluid {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .report-wrapper {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .report-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-color);
+            border-radius: 12px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .company-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -0.025em;
+        }
+
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0 0 1rem 0;
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .meta-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+        }
+
+        .report-content {
+            padding: 2rem;
+        }
+
+        .section-header {
+            background: var(--accent-color);
+            padding: 1rem 1.5rem;
+            margin: 2rem -2rem 1.5rem -2rem;
+            border-left: 4px solid var(--primary-color);
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .data-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .data-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .data-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .footer-info {
+            background: var(--accent-color);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Table Styling for Activity Logs */
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background: var(--accent-color);
+            font-weight: 600;
+            color: var(--text-dark);
+            padding: 1rem;
+            border-bottom: 2px solid var(--border-color);
+            text-align: left;
+        }
+
+        .table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: rgba(248, 250, 252, 0.5);
+        }
+
+        .table tbody tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .activity-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .value-highlight {
+            font-weight: 700;
+            color: var(--success-color);
+            font-size: 1.1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                background: white !important;
+                font-size: 11pt;
+                line-height: 1.3;
+            }
+
+            .container-fluid {
+                padding: 0;
+                max-width: none;
+            }
+
+            .report-wrapper {
+                box-shadow: none;
+                border-radius: 0;
+                border: 1px solid #ccc;
+            }
+
+            .report-header {
+                background: white !important;
+                padding: 1.5rem 1rem 1rem;
+                border-bottom: 2px solid #ddd;
+            }
+
+            .company-name {
+                font-size: 1.75rem;
+            }
+
+            .report-title {
+                font-size: 1.25rem;
+            }
+
+            .report-meta {
+                flex-direction: row;
+                justify-content: center;
+                gap: 2rem;
+                margin-top: 1rem;
+                padding-top: 1rem;
+            }
+
+            .report-content {
+                padding: 1rem;
+            }
+
+            .table {
+                font-size: 10pt;
+                page-break-inside: auto;
+            }
+
+            .table th {
+                background: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                padding: 0.5rem;
+                font-size: 10pt;
+            }
+
+            .table td {
+                padding: 0.4rem 0.5rem;
+                page-break-inside: avoid;
+            }
+
+            .table tbody tr:nth-child(even) {
+                background: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            .activity-badge {
+                background: #2563eb !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                padding: 0.2rem 0.5rem;
+                font-size: 9pt;
+            }
+
+            .value-highlight {
+                color: #059669 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .empty-state {
+                padding: 2rem 1rem;
+            }
+
+            /* Ensure colors print correctly */
+            .company-logo {
+                background: #2563eb !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            /* Page breaks */
+            .report-header {
+                page-break-after: avoid;
+            }
+
+            .table thead {
+                page-break-after: avoid;
+            }
+
+            .table tbody tr {
+                page-break-inside: avoid;
+            }
+
+            /* Hide hover effects */
+            .table tbody tr:hover {
+                background: inherit !important;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+
+            .report-header {
+                padding: 2rem 1rem 1.5rem;
+            }
+
+            .company-name {
+                font-size: 2rem;
+            }
+
+            .report-title {
+                font-size: 1.25rem;
+            }
+
+            .report-meta {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .report-content {
+                padding: 1rem;
+            }
+
+            .section-header {
+                margin: 1.5rem -1rem 1rem -1rem;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="report-wrapper">
+            <div class="report-header">
+                <h1 class="company-name">{{ title }}</h1>
+                <div class="report-meta">
+                    <div class="meta-item">
+                        <div class="meta-icon">📅</div>
+                        <span>Generated: {% now "jS F Y" %}</span>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-icon">🕐</div>
+                        <span>{% now "h:i A" %}</span>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-icon">📊</div>
+                        <span>Business Report</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-content">
+                {% block content %}
+                {% endblock %}
+            </div>
+            </div>
+
+            <div class="footer-info">
+                <p style="margin: 0;">
+                    <strong>Ayotola & Sons</strong> • Professional Business Solutions • 
+                    Generated on {% now "jS F Y \a\t h:i A" %}
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1329,3 +1329,33 @@ class SaleFilterForm(forms.Form):
         label="Sale Status",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+
+
+class ActivityLogFilterForm(forms.Form):
+    PERIOD_CHOICES = [
+        ('today', 'Today'),
+        ('yesterday', 'Yesterday'),
+        ('this_week', 'This Week'),
+        ('last_7_days', 'Last 7 Days'),
+        ('this_month', 'This Month'),
+    ]
+
+    VIEW_CHOICES = [
+        ('summary', 'Summary'),
+        ('detailed', 'Detailed View'),
+    ]
+    
+    period = forms.ChoiceField(
+        choices=PERIOD_CHOICES,
+        required=True,
+        label="Select Period",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    view_type = forms.ChoiceField(
+        choices=VIEW_CHOICES,
+        required=True,
+        label="View Type",
+        initial='summary',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )

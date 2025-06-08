@@ -4,6 +4,8 @@ from . import views
 
 
 urlpatterns = [
+    path('reports/activity-log/', views.ActivityLogView.as_view(), name='activity_log'),
+    
     # Deposits
     path('deposits/', views.DepositListView.as_view(), name='deposit_list'), #
     path('deposits/create/', views.add_deposit, name='deposit_create'), #
