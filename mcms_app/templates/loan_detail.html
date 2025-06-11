@@ -123,6 +123,17 @@
                                 </span>
                             </div>
                         </div>
+
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Created by</span>
+                                <span class="detail-value">{{ loan.created_by }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Updated by</span>
+                                <span class="detail-value">{{ loan.updated_by }}</span>
+                            </div>
+                        </div>
                         
                         {% if loan.remarks %}
                         <div class="detail-item detail-item-full">
@@ -136,13 +147,7 @@
                         <div class="detail-item detail-item-full">
                             <span class="detail-label">Timestamps</span>
                             <div class="detail-value text-muted timestamps">
-                                <span>Created: 
-                                    <time datetime="{{ loan.created_at|date:'c' }}">
-                                        {{ loan.created_at|date:"M d, Y H:i"|default:"N/A" }}
-                                    </time>
-                                </span>
-                                {% if loan.updated_at != loan.created_at %}
-                                    <span class="separator">|</span>
+                                {% if loan.updated_at != loan.loan_date %}
                                     <span>Last Updated: 
                                         <time datetime="{{ loan.updated_at|date:'c' }}">
                                             {{ loan.updated_at|date:"M d, Y H:i"|default:"N/A" }}

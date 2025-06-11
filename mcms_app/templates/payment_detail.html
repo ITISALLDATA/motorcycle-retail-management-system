@@ -67,13 +67,22 @@
                         </div>
                         <div class="detail-group">
                              <div class="detail-item">
+                                <span class="detail-label">Created by</span>
+                                <span class="detail-value">{{ payment.created_by }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Update by</span>
+                                <span class="detail-value">{{ payment.updated_by }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-group">
+                             <div class="detail-item">
                                 <span class="detail-label">Payment Method</span>
                                 <span class="detail-value">{{ payment.get_payment_method_display }}</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Timestamps</span>
                                 <span class="detail-value text-muted" style="font-size: 0.8rem;">
-                                    Added: {{ payment.created_at|date:"M d, Y H:i" }}<br>
                                     Updated: {{ payment.updated_at|date:"M d, Y H:i" }}
                                 </span>
                             </div>

@@ -32,7 +32,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         now = timezone.now()
         today = now.date()
         
-        start_of_this_week = today - timedelta(days=today.weekday())
+        start_of_this_week = today - datetime.timedelta(days=today.weekday())
         start_of_this_month = today.replace(day=1)
         start_of_this_year = today.replace(month=1, day=1)
 
@@ -50,7 +50,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['sales_this_year_count'] = active_sales_this_year_qs.count()
         context['sales_this_year_value'] = active_sales_this_year_qs.aggregate(total=Coalesce(Sum('final_price'), Value(Decimal('0.00'))))['total']
 
-        context['recent_sales'] = Sale.objects.filter(status='ACTIVE').select_related('customer', 'motorcycle').order_by('-sale_date', '-created_at')[:6]
+        context['recent_sales'] = Sale.objects.filter(status='ACTIVE').select_related('customer', 'motorcycle').order_by('-sale_date')[:6]
         
         context['top_selling_models_year_qty'] = Sale.objects.filter(
             sale_date__date__gte=start_of_this_year, status='ACTIVE'
@@ -89,7 +89,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         latest_price_subquery = SupplierPaymentItem.objects.filter(
             motorcycle_model_id=OuterRef('motorcycle_model_id')
         ).order_by(
-            '-payment__payment_date', '-payment__created_at', '-id'
+            '-payment__payment_date', '-id'
         ).values('unit_price') # Select only the unit_price
         latest_price_subquery.output_field = DecimalField()
 
@@ -221,16 +221,17 @@ def customer_create(request):
     if request.method == 'POST':
         form = CustomerForm(request.POST)
         if form.is_valid():
-            customer = form.save()
+            customer = form.save(commit=False)
+            customer.created_by = request.user
+            customer.updated_by = request.user
+            customer.save()
             messages.success(request, f'Customer "{customer.name}" created successfully.')
             return redirect('customer_detail', pk=customer.pk)
     else:
         form = CustomerForm()
     
-    return render(request, 'customer_form.html', {
-        'form': form,
-        'title': 'Create Customer'
-    })
+    return render(request, 'customer_form.html', {'form': form, 'title': 'Create Customer'})
+
 
 
 class CustomerDetailView(LoginRequiredMixin, DetailView):
@@ -272,18 +273,16 @@ class CustomerDetailView(LoginRequiredMixin, DetailView):
 
 @login_required
 def customer_edit(request, pk):
-    """Edit customer details."""
     customer = get_object_or_404(Customer, pk=pk)
-    
     if request.method == 'POST':
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
-            form.save()
+            # CORRECTED PATTERN
+            instance = form.save(commit=False)
+            instance.updated_by = request.user
+            instance.save()
             messages.success(request, f'Customer "{customer.name}" updated successfully.')
-            return redirect('customer_detail', pk=customer.pk) # Redirect to the customer's detail page
-        else:
-            # If form is not valid, print errors (for debugging) and re-render the form
-            print(form.errors) 
+            return redirect('customer_detail', pk=customer.pk)
     else:
         form = CustomerForm(instance=customer)
     
@@ -337,16 +336,16 @@ def supplier_create(request):
     if request.method == 'POST':
         form = SupplierForm(request.POST)
         if form.is_valid():
-            supplier = form.save()
+            supplier = form.save(commit=False)
+            supplier.created_by = request.user
+            supplier.updated_by = request.user
+            supplier.save()
             messages.success(request, f'Supplier "{supplier.name}" created successfully.')
             return redirect('supplier_detail', pk=supplier.pk)
     else:
         form = SupplierForm()
     
-    return render(request, 'supplier_form.html', {
-        'form': form,
-        'title': 'Create Supplier'
-    })
+    return render(request, 'supplier_form.html', {'form': form, 'title': 'Create Supplier'})
 
 
 class SupplierDetailView(LoginRequiredMixin, DetailView):
@@ -420,13 +419,14 @@ class SupplierDetailView(LoginRequiredMixin, DetailView):
 
 @login_required
 def supplier_edit(request, pk):
-    """Edit supplier"""
     supplier = get_object_or_404(Supplier, pk=pk)
-    
     if request.method == 'POST':
         form = SupplierForm(request.POST, instance=supplier)
         if form.is_valid():
-            form.save()
+            # CORRECTED PATTERN
+            instance = form.save(commit=False)
+            instance.updated_by = request.user
+            instance.save()
             messages.success(request, f'Supplier "{supplier.name}" updated successfully.')
             return redirect('supplier_detail', pk=supplier.pk)
     else:
@@ -471,7 +471,7 @@ class PaymentListView(LoginRequiredMixin, ListView):
             # else:
             #    queryset = queryset.exclude(status=SupplierPayment.CANCELLED) # Example: hide cancelled by default
 
-        return queryset.order_by('-payment_date', '-created_at')
+        return queryset.order_by('-payment_date')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -513,6 +513,8 @@ def payment_create(request):
 
         if form.is_valid() and formset.is_valid():
             payment = form.save(commit=False)
+            payment.created_by = request.user
+            payment.updated_by = request.user
             payment.status = SupplierPayment.ACTIVE
             payment.save() # Save parent
 
@@ -602,6 +604,7 @@ def payment_edit(request, pk):
 
         # Step 2: Validate the main form first to get the cleaned 'amount_paid'
         if form.is_valid():
+            payment.updated_by = request.user # Update the user who edited
             # `form.cleaned_data['amount_paid']` is now the validated amount_paid from this submission.
             # `form.instance.amount_paid` (which is `payment.amount_paid`) has also been updated.
             cleaned_parent_amount_paid = form.cleaned_data['amount_paid']
@@ -664,20 +667,16 @@ def payment_edit(request, pk):
 
 
 @login_required
-@transaction.atomic # Keep for the POST part
+@transaction.atomic
 def payment_cancel(request, pk):
     payment = get_object_or_404(SupplierPayment, pk=pk)
-
-    if not payment.is_cancellable: # Using the model property
-        messages.error(request, f'Payment "{payment.payment_reference}" ({payment.get_status_display()}) cannot be cancelled at this stage (e.g., it might have deliveries or is not in an active state).')
-        return redirect('payment_detail', pk=payment.pk)
-
     if request.method == 'POST':
         payment.status = SupplierPayment.CANCELLED
         payment.remarks = (payment.remarks or "") + f"\nCancelled on {timezone.now().strftime('%Y-%m-%d %H:%M')} by {request.user.username if request.user.is_authenticated else 'system'}."
-        payment.save(update_fields=['status', 'remarks', 'updated_at'])
+        payment.updated_by = request.user
+        payment.save(update_fields=['status', 'remarks', 'updated_at', 'updated_by'])
         messages.success(request, f'Payment "{payment.payment_reference}" has been cancelled.')
-        return redirect('payment_detail', pk=payment.pk) # Or payment_list
+        return redirect('payment_detail', pk=payment.pk)
 
     # For GET request, prepare context for the generic confirmation template
     consequences = [
@@ -736,7 +735,7 @@ class DeliveryListView(LoginRequiredMixin, ListView):
         else:
             queryset = queryset.filter(is_cancelled=False)
         
-        return queryset.order_by('-delivery_date', '-created_at')
+        return queryset.order_by('-delivery_date')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -759,7 +758,13 @@ def delivery_create(request):
 
         if is_form_valid and is_formset_valid:
             try:
-                delivery = form.save() 
+                delivery = form.save(commit=False) # Save parent without committing to DB yet
+
+                delivery.created_by = request.user
+                delivery.updated_by = request.user
+
+                delivery.save() # Save parent to DB
+
                 formset.instance = delivery 
                 formset.save() 
 
@@ -819,7 +824,7 @@ class DeliveryDetailView(LoginRequiredMixin, DetailView):
 
 
 @login_required
-@transaction.atomic # Keep for the POST part
+@transaction.atomic
 def delivery_cancel(request, pk):
     delivery = get_object_or_404(SupplierDelivery, pk=pk)
 
@@ -828,21 +833,30 @@ def delivery_cancel(request, pk):
         return redirect('delivery_detail', pk=delivery.pk)
 
     if request.method == 'POST':
-        payment_to_update = delivery.payment # Get payment before cancelling
-        delivery.cancel_delivery() # This model method handles inventory and sets status
+        payment_to_update = delivery.payment
+        
+        # 1. Call the model method and pass the user. This now handles saving the delivery.
+        delivery.cancel_delivery(user=request.user)
+
+        # 2. Separately update and save the related payment object
+        payment_to_update.remarks = (payment_to_update.remarks or "") + f"\nDelivery {delivery.delivery_reference} cancelled on {timezone.now().strftime('%Y-%m-%d %H:%M')} by {request.user.username}."
+        payment_to_update.updated_by = request.user
+        payment_to_update.save(update_fields=['remarks', 'updated_by', 'updated_at'])
+
         messages.success(request, f'Delivery "{delivery.delivery_reference}" has been cancelled and inventory has been adjusted.')
         
+        # 3. Recalculate the payment's completion status
         if payment_to_update:
-             payment_to_update.update_completion_status(force_recalculate=True) # Model method
-        return redirect('delivery_detail', pk=delivery.pk) # Or delivery_list or payment_detail
+            payment_to_update.update_completion_status(force_recalculate=True)
+            
+        return redirect('delivery_detail', pk=delivery.pk)
 
-    # For GET request
+    # For GET request (No changes needed here)
     consequences = [
         "The delivery status will be set to 'Cancelled'.",
         "Inventory changes made by this delivery will be reversed (items restocked).",
-        "The status of the associated Supplier Payment may be re-evaluated (e.g., from 'Completed' back to 'Active')."
+        "The status of the associated Supplier Payment may be re-evaluated.",
     ]
-
     context = {
         'item': delivery,
         'item_type': "Supplier Delivery",
@@ -854,7 +868,6 @@ def delivery_cancel(request, pk):
         'action_verb': 'Cancel Delivery'
     }
     return render(request, 'generic_cancel_confirm.html', context)
-
 
 # Inventory Views
 class InventoryListView(LoginRequiredMixin, ListView):
@@ -1055,7 +1068,13 @@ def add_deposit(request):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    deposit = form.save()
+                    deposit = form.save(commit=False) # Create deposit instance without saving to DB yet
+                    
+                    deposit.created_by = request.user
+                    deposit.updated_by = request.user
+
+                    deposit.save()
+
                     messages.success(request, f"Deposit {deposit.deposit_reference} added successfully.")
                     return redirect(deposit.get_absolute_url()) # Redirect to detail view
             except Exception as e:
@@ -1083,7 +1102,11 @@ def edit_deposit(request, deposit_id):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    updated_deposit = form.save()
+                    updated_deposit = form.save(commit=False) # Create updated deposit instance without saving to DB yet
+
+                    updated_deposit.updated_by = request.user # Update the user who edited
+                    updated_deposit.save()
+
                     messages.success(request, f"Deposit {updated_deposit.deposit_reference} updated successfully.")
                     
                     # Check if status was auto-updated and inform user
@@ -1134,12 +1157,13 @@ def cancel_deposit(request, deposit_id):
         try:
             with transaction.atomic():
                 deposit.deposit_status = 'cancelled'
+                deposit.updated_by = request.user # Update the user who cancelled
                 timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
                 cancellation_note = f" Cancelled on {timestamp} by {request.user.username if request.user.is_authenticated else 'system'}."
                 if total_withdrawn_from_deposit > Decimal('0.00'):
                     cancellation_note += f" (₦{total_withdrawn_from_deposit:,.2f} had been withdrawn from this deposit.)"
                 deposit.transaction_note = (deposit.transaction_note or '') + cancellation_note
-                deposit.save(update_fields=['deposit_status', 'transaction_note', 'updated_at']) # Ensure updated_at is also saved
+                deposit.save(update_fields=['deposit_status', 'transaction_note', 'updated_at', 'updated_by'])
                 messages.success(request, f"Deposit {deposit.deposit_reference} has been successfully cancelled.")
                 return redirect('deposit_list') # Redirect to list view after cancellation
         except Exception as e:
@@ -1211,7 +1235,13 @@ def add_withdrawal(request):
            
                 try:
                     with transaction.atomic():
-                        withdrawal = form.save()
+                        
+                        withdrawal = form.save(commit=False) # Create withdrawal instance without saving to DB yet
+                        
+                        withdrawal.created_by = request.user
+                        withdrawal.updated_by = request.user
+                        withdrawal.save() # Save withdrawal to DB
+
                         deposit = withdrawal.deposit
                         status_message = f"Withdrawal from {deposit.deposit_reference} processed successfully."
                         
@@ -1257,7 +1287,10 @@ def edit_withdrawal(request, withdrawal_id):
         if form.is_valid():
             try:
                 with transaction.atomic():
-                    updated_withdrawal = form.save()
+                    updated_withdrawal = form.save(commit=False) # Create updated withdrawal instance without saving to DB yet
+
+                    updated_withdrawal.updated_by = request.user # Update the user who edited
+                    updated_withdrawal.save() # Save withdrawal to DB
                     
                     base_message = f"Withdrawal from {updated_withdrawal.deposit.deposit_reference} updated successfully."
                     
@@ -1308,7 +1341,6 @@ def cancel_withdrawal(request, withdrawal_id):
         return redirect(withdrawal.get_absolute_url())
     
     if request.method == 'POST':
-        print("about to cancel withdrawal")
         try:
             with transaction.atomic():
                 # Store deposit for status checking
@@ -1316,6 +1348,7 @@ def cancel_withdrawal(request, withdrawal_id):
                 was_completed = deposit.deposit_status == 'completed'
                 
                 withdrawal.withdrawal_status = 'cancelled'
+                withdrawal.updated_by = request.user # Update the user who cancelled
                 timestamp = timezone.now().strftime('%Y-%m-%d %H:%M')
                 withdrawal.remarks = (withdrawal.remarks or '') + f" Cancelled on {timestamp}"
                 withdrawal.save()  # This will trigger deposit status update automatically
@@ -1420,6 +1453,8 @@ def add_motorcycle(request):
         form = MotorcycleForm(request.POST)
         if form.is_valid():
             motorcycle = form.save(commit=False)
+            motorcycle.created_by = request.user
+            motorcycle.updated_by = request.user    
             motorcycle.status = Motorcycle.ACTIVE # Explicitly set for new ones
             motorcycle.save()
             messages.success(request, f"Motorcycle '{motorcycle}' created successfully.")
@@ -1438,14 +1473,14 @@ def add_motorcycle(request):
 @login_required
 def edit_motorcycle(request, pk):
     motorcycle = get_object_or_404(Motorcycle, pk=pk)
-    if motorcycle.status == Motorcycle.DISCONTINUED:
-        messages.warning(request, f"Discontinued motorcycle '{motorcycle}' cannot be edited.")
-        return redirect(motorcycle.get_absolute_url())
-
+    # ...
     if request.method == 'POST':
         form = MotorcycleForm(request.POST, instance=motorcycle)
         if form.is_valid():
-            updated_motorcycle = form.save()
+            # CORRECTED PATTERN
+            updated_motorcycle = form.save(commit=False)
+            updated_motorcycle.updated_by = request.user
+            updated_motorcycle.save()
             messages.success(request, f"Motorcycle '{updated_motorcycle}' updated successfully.")
             return redirect(updated_motorcycle.get_absolute_url())
         else:
@@ -1474,12 +1509,12 @@ def motorcycle_discontinue_view(request, pk):
         return redirect(motorcycle.get_absolute_url())
 
     if request.method == 'POST':
-        with transaction.atomic():
-            motorcycle.status = Motorcycle.DISCONTINUED
-            motorcycle.updated_at = timezone.now() # Manually update if auto_now isn't sufficient or if save fields specified
-            motorcycle.save(update_fields=['status', 'updated_at'])
-            messages.success(request, f"Motorcycle '{motorcycle}' has been discontinued.")
-            return redirect(motorcycle.get_absolute_url())
+            with transaction.atomic():
+                motorcycle.status = Motorcycle.DISCONTINUED
+                motorcycle.updated_by = request.user
+                motorcycle.save(update_fields=['status', 'updated_at', 'updated_by'])
+                messages.success(request, f"Motorcycle '{motorcycle}' has been discontinued.")
+                return redirect(motorcycle.get_absolute_url())
 
     consequences = [
         "The model will be marked as 'Discontinued'.",
@@ -1590,7 +1625,10 @@ def add_loan(request): # Based on your existing view
         if form.is_valid():
             try:
                 with transaction.atomic(): # Ensure atomicity
-                    loan = form.save() # Model's save handles balance, status, reference
+                    loan = form.save(commit=False) # Model's save handles balance, status, reference
+                    loan.created_by = request.user
+                    loan.updated_by = request.user  
+                    loan.save()
                     messages.success(request, f"Loan {loan.loan_reference} added successfully.")
                     return redirect(loan.get_absolute_url())
             except Exception as e:
@@ -1621,7 +1659,9 @@ def edit_loan(request, loan_id): # Based on your existing view
         if form.is_valid():
             try:
                 with transaction.atomic(): # Ensure atomicity
-                    updated_loan = form.save() # Model's save handles balance updates if amount changes
+                    updated_loan = form.save(commit=False) # Model's save handles balance updates if amount changes
+                    updated_loan.updated_by = request.user # Update the user who edited
+                    updated_loan.save() # Save the updated loan instance    
                     messages.success(request, f"Loan {updated_loan.loan_reference} updated successfully.")
                     return redirect(updated_loan.get_absolute_url())
             except Exception as e:
@@ -1655,19 +1695,17 @@ def cancel_loan(request, loan_id): # Based on your existing view
                        f"Please cancel the Sale first if you need to reverse this loan.")
         return redirect(loan.get_absolute_url())
     
-    # Add check for associated repayments.
-    # If business rule is to not allow cancellation if repayments exist, add check here.
-    # For now, if repayments exist, they will remain, but the loan is cancelled.
-    # This might require manual adjustment or specific accounting.
+    # Check if there are repayments associated with this loan
     has_repayments = loan.loanrepayment_set.exists()
 
     if request.method == 'POST':
         try:
             with transaction.atomic():
                 loan.loan_status = 'cancelled'
+                loan.updated_by = request.user # Update the user who cancelled
                 loan.remarks = (loan.remarks or '') + f" (Cancelled on {timezone.now().strftime('%Y-%m-%d %H:%M')} by {request.user.username if request.user.is_authenticated else 'system'})"
                 loan.balance = Decimal('0.00') # Optionally reset balance
-                loan.save(update_fields=['loan_status', 'remarks', 'updated_at']) # Add 'balance' if resetting
+                loan.save(update_fields=['loan_status', 'remarks', 'updated_at', 'updated_by']) # Add 'balance' if resetting
                 messages.success(request, f"Loan {loan.loan_reference} has been successfully cancelled.")
                 return redirect(loan.get_absolute_url()) # Redirect to detail after cancellation
         except Exception as e:
@@ -1745,7 +1783,10 @@ def add_loan_repayment(request): # Based on your existing view (name was add_loa
         if form.is_valid():
             try:
                 with transaction.atomic(): # CRITICAL: Form save has side effects on Loan
-                    repayment = form.save()
+                    repayment = form.save(commit=False) # Create repayment instance without saving to DB yet
+                    repayment.created_by = request.user
+                    repayment.updated_by = request.user
+                    repayment.save()
                     messages.success(request, f"Repayment of ₦{repayment.repayment_amount} for loan {repayment.loan.loan_reference} added successfully.")
                     return redirect(repayment.get_absolute_url()) # Redirect to repayment detail
             except Exception as e:
@@ -1769,7 +1810,9 @@ def edit_loan_repayment(request, repayment_id): # Based on your existing view (n
         if form.is_valid():
             try:
                 with transaction.atomic(): # CRITICAL: Form save has side effects on Loan
-                    updated_repayment = form.save()
+                    updated_repayment = form.save(commit=False) # Create updated repayment instance without saving to DB yet
+                    updated_repayment.updated_by = request.user # Update the user who edited
+                    updated_repayment.save() # Save the updated repayment instance
                     messages.success(request, f"Repayment for loan {updated_repayment.loan.loan_reference} updated successfully.")
                     return redirect(updated_repayment.get_absolute_url())
             except Exception as e:
@@ -1898,7 +1941,7 @@ class SaleListView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Sale.objects.select_related('customer', 'motorcycle').order_by('-sale_date', '-created_at') #
+        queryset = Sale.objects.select_related('customer', 'motorcycle').order_by('-sale_date') #
 
         self.filter_form = SaleFilterForm(self.request.GET or None) #
         if self.filter_form.is_valid(): #
@@ -1949,72 +1992,148 @@ class SaleDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
+# @login_required
+# @transaction.atomic # Ensure all operations are atomic
+# def sale_create_view(request):
+#     if request.method == 'POST':
+#         form = SaleCreateForm(request.POST)
+#         if form.is_valid():
+#             print("-------VALID--------------------------")
+#             try:
+#                 sale = form.save(commit=False)
+#                 sale.sale_reference = generate_sale_reference() # Generate and assign reference
+
+#                 # --- Payment Processing ---
+#                 payment_successful = True
+#                 if sale.payment_type == 'DEPOSIT': # [cite: 1]
+#                     # This function needs the sale instance (even if not fully saved, for reference in remarks)
+#                     # but will be fully linked after sale.save()
+#                     # The form already validated if total balance is sufficient
+#                     # We pass sale here which is not yet saved. The actual linking of FK is done after sale.save()
+#                     # For now, let's assume sale is saved first, then payment processed.
+#                     # Or, pass data to _process_deposit_payment and link after sale.save()
+#                     pass # Placeholder, see below
+
+#                 elif sale.payment_type == 'LOAN': # [cite: 1, 8]
+#                     pass # Placeholder, see below
+                
+#                 # Save the sale first to get a PK, which might be needed for related objects
+#                 sale.save(commit=False) # Save without committing to DB yet, to allow further processing
+#                 sale.created_by = request.user # Set the user who created the sale
+#                 sale.updated_by = request.user # Set the user who updated the sale
+#                 sale.save() # Now commit to DB, this will generate a sale.pk
+#                 form.save_m2m() # If there were any many-to-many fields
+
+#                 # Now process payments that need the sale_id
+#                 if sale.payment_type == 'DEPOSIT':
+#                     if not _process_deposit_payment(sale, sale.customer, sale.final_price): # [cite: 5]
+#                         # This case should ideally be caught by form validation or early checks
+#                         payment_successful = False
+#                         messages.error(request, "Failed to process deposit payment fully despite initial checks.")
+#                         # transaction will be rolled back by the exception or explicit handling
+#                         raise ValidationError("Deposit processing failed.") 
+                
+#                 elif sale.payment_type == 'LOAN':
+#                     Loan.objects.create(
+#                         customer=sale.customer,
+#                         loan_amount=sale.final_price,
+#                         remarks=f"Loan for Sale {sale.sale_reference} (Motorcycle Eng: {sale.engine_no})", # [cite: 9]
+#                         sale=sale, # Link to the sale
+#                         loan_status='pending' # Or 'active' based on business rule
+#                     )
+
+#                 if not payment_successful: # Should have raised error before this
+#                     raise Exception("Payment processing failed unexpectedly.")
+
+
+#                 # --- Inventory Management --- [cite: 12]
+#                 InventoryTransaction.objects.create(
+#                     transaction_type='SALE', # [cite: 13]
+#                     motorcycle_model=sale.motorcycle,
+#                     quantity= -1, # Reduce quantity
+#                     reference_model='Sale',
+#                     reference_id=sale.pk,
+#                     remarks=f"Sale: {sale.sale_reference}, Eng: {sale.engine_no}"
+#                 )
+#                 # The Inventory.update_inventory signal will handle Inventory.current_quantity update
+
+#                 messages.success(request, f"Sale {sale.sale_reference} created successfully.")
+#                 return redirect(sale.get_absolute_url())
+            
+#             except ValidationError as ve: # Catch validation errors from service logic
+#                 form.add_error(None, ve) # Add to non-field errors or specific field
+#                 messages.error(request, "Please correct the errors below.")
+#                 print(f"!!! A VALIDATION ERROR OCCURRED: {ve}")
+#             except Exception as e:
+#                 messages.error(request, f"An unexpected error occurred: {e}")
+#                 print(f"!!! AN UNEXPECTED EXCEPTION OCCURRED: {e}")
+#         else:
+#             messages.error(request, "Please correct the errors in the form.")
+#             print(form.errors.as_json()) 
+#             print("---------- FORM ERRORS ----------")
+#             print(form.errors.as_json())
+#             print("---------------------------------")
+#     else:
+#         form = SaleCreateForm()
+
+#     return render(request, 'sale_form.html', {'form': form, 'title': 'Create New Sale'})
+
+
+# mcms_app/views.py
+
 @login_required
-@transaction.atomic # Ensure all operations are atomic
+@transaction.atomic
 def sale_create_view(request):
     if request.method == 'POST':
         form = SaleCreateForm(request.POST)
         if form.is_valid():
             try:
+                # 1. Create the sale instance in memory WITHOUT saving to the database.
                 sale = form.save(commit=False)
-                sale.sale_reference = generate_sale_reference() # Generate and assign reference
-
-                # --- Payment Processing ---
-                payment_successful = True
-                if sale.payment_type == 'DEPOSIT': # [cite: 1]
-                    # This function needs the sale instance (even if not fully saved, for reference in remarks)
-                    # but will be fully linked after sale.save()
-                    # The form already validated if total balance is sufficient
-                    # We pass sale here which is not yet saved. The actual linking of FK is done after sale.save()
-                    # For now, let's assume sale is saved first, then payment processed.
-                    # Or, pass data to _process_deposit_payment and link after sale.save()
-                    pass # Placeholder, see below
-
-                elif sale.payment_type == 'LOAN': # [cite: 1, 8]
-                    pass # Placeholder, see below
                 
-                # Save the sale first to get a PK, which might be needed for related objects
-                sale.save() 
-                form.save_m2m() # If there were any many-to-many fields
+                # 2. Set all the fields that are not part of the form.
+                sale.sale_reference = generate_sale_reference()
+                sale.created_by = request.user
+                sale.updated_by = request.user
+                
+                # 3. Now, save the fully prepared sale object to the database ONCE.
+                sale.save()
+                
+                # 4. Save many-to-many relationships (if you had any). Good practice to keep.
+                form.save_m2m()
 
-                # Now process payments that need the sale_id
+                # 5. Now that the sale is saved and has a PK, process related payments.
                 if sale.payment_type == 'DEPOSIT':
-                    if not _process_deposit_payment(sale, sale.customer, sale.final_price): # [cite: 5]
-                        # This case should ideally be caught by form validation or early checks
-                        payment_successful = False
-                        messages.error(request, "Failed to process deposit payment fully despite initial checks.")
-                        # transaction will be rolled back by the exception or explicit handling
-                        raise ValidationError("Deposit processing failed.") 
+                    if not _process_deposit_payment(sale, sale.customer, sale.final_price):
+                        raise ValidationError("Deposit processing failed.")
                 
                 elif sale.payment_type == 'LOAN':
                     Loan.objects.create(
                         customer=sale.customer,
                         loan_amount=sale.final_price,
-                        remarks=f"Loan for Sale {sale.sale_reference} (Motorcycle Eng: {sale.engine_no})", # [cite: 9]
-                        sale=sale, # Link to the sale
-                        loan_status='pending' # Or 'active' based on business rule
+                        remarks=f"Loan for Sale {sale.sale_reference}",
+                        sale=sale,
+                        created_by=request.user, # Also track who created the loan
+                        updated_by=request.user
                     )
 
-                if not payment_successful: # Should have raised error before this
-                    raise Exception("Payment processing failed unexpectedly.")
-
-
-                # --- Inventory Management --- [cite: 12]
+                # 6. Create the inventory transaction record for the sale.
                 InventoryTransaction.objects.create(
-                    transaction_type='SALE', # [cite: 13]
+                    transaction_type='SALE',
                     motorcycle_model=sale.motorcycle,
                     quantity= -1, # Reduce quantity
                     reference_model='Sale',
                     reference_id=sale.pk,
-                    remarks=f"Sale: {sale.sale_reference}, Eng: {sale.engine_no}"
+                    remarks=f"Sale: {sale.sale_reference}, Eng: {sale.engine_no}",
+                    created_by=request.user, # Also track who created the transaction
+                    updated_by=request.user
                 )
-                # The Inventory.update_inventory signal will handle Inventory.current_quantity update
 
                 messages.success(request, f"Sale {sale.sale_reference} created successfully.")
                 return redirect(sale.get_absolute_url())
             
-            except ValidationError as ve: # Catch validation errors from service logic
-                 form.add_error(None, ve) # Add to non-field errors or specific field
+            except ValidationError as ve:
+                 form.add_error(None, ve)
                  messages.error(request, "Please correct the errors below.")
             except Exception as e:
                 messages.error(request, f"An unexpected error occurred: {e}")
@@ -2045,7 +2164,10 @@ def sale_edit_view(request, pk):
         if form.is_valid():
             print("Form is VALID. Attempting to save...") # DEBUG
             try:
-                edited_sale = form.save()
+                edited_sale = form.save(commit=False) # Save without committing to DB yet
+                edited_sale.updated_by = request.user  # Update the user who edited
+                edited_sale.save() # Now commit to DB, this will generate a sale.pk
+                form.save_m2m() # If there were any many-to-many fields
                 print(f"Sale PK {edited_sale.pk} saved successfully.") # DEBUG
                 messages.success(request, f"Sale {edited_sale.sale_reference} updated successfully.")
                 return redirect(edited_sale.get_absolute_url())
@@ -2083,6 +2205,7 @@ def sale_cancel_view(request, pk):
             
             # 1. Update Sale Status
             sale.status = 'CANCELLED'
+            sale.updated_by = request.user  # Update the user who cancelled
             sale.remarks = (sale.remarks or "") + f"\nCancelled on {timezone.now().strftime('%Y-%m-%d %H:%M')}."
             sale.save()
 
@@ -2205,15 +2328,15 @@ class ActivityLogView(LoginRequiredMixin, TemplateView):
                 'New Suppliers': {'count': 0, 'total_amount': None},
             }
 
-            sales_qs = Sale.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            sales_qs = Sale.objects.filter(sale_date__gte=start_datetime, sale_date__lt=end_datetime)
             summary_data['New Sales']['count'] = sales_qs.count()
             summary_data['New Sales']['total_amount'] = sales_qs.aggregate(total=Sum('final_price'))['total'] or Decimal('0.00')
 
-            payments_qs = SupplierPayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            payments_qs = SupplierPayment.objects.filter(payment_date__gte=start_datetime, payment_date__lt=end_datetime)
             summary_data['New Supplier Payments']['count'] = payments_qs.count()
             summary_data['New Supplier Payments']['total_amount'] = payments_qs.aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
 
-            summary_data['New Deliveries']['count'] = SupplierDelivery.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).count()
+            summary_data['New Deliveries']['count'] = SupplierDelivery.objects.filter(delivery_date__gte=start_datetime, delivery_date__lt=end_datetime).count()
             
             deposits_qs = Deposit.objects.filter(deposit_date__gte=start_datetime, deposit_date__lt=end_datetime)
             summary_data['New Deposits']['count'] = deposits_qs.count()
@@ -2223,11 +2346,11 @@ class ActivityLogView(LoginRequiredMixin, TemplateView):
             summary_data['New Withdrawals']['count'] = withdrawals_qs.count()
             summary_data['New Withdrawals']['total_amount'] = withdrawals_qs.aggregate(total=Sum('withdrawal_amount'))['total'] or Decimal('0.00')
 
-            loans_qs = Loan.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            loans_qs = Loan.objects.filter(loan_date__gte=start_datetime, loan_date__lt=end_datetime)
             summary_data['New Loans']['count'] = loans_qs.count()
             summary_data['New Loans']['total_amount'] = loans_qs.aggregate(total=Sum('loan_amount'))['total'] or Decimal('0.00')
 
-            repayments_qs = LoanRepayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
+            repayments_qs = LoanRepayment.objects.filter(repayment_date__gte=start_datetime, repayment_date__lt=end_datetime)
             summary_data['New Loan Repayments']['count'] = repayments_qs.count()
             summary_data['New Loan Repayments']['total_amount'] = repayments_qs.aggregate(total=Sum('repayment_amount'))['total'] or Decimal('0.00')
             
@@ -2241,36 +2364,46 @@ class ActivityLogView(LoginRequiredMixin, TemplateView):
         else:
             # --- DETAILED VIEW LOGIC ---
             raw_activities = []
-            sales = Sale.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('customer', 'motorcycle')
+            sales = Sale.objects.filter(sale_date__gte=start_datetime, sale_date__lt=end_datetime).select_related('customer', 'motorcycle')
             for sale in sales:
-                raw_activities.append({'timestamp': sale.created_at, 'activity_type': 'New Sale', 'description': f"Sale <a href='{sale.get_absolute_url()}'>{sale.sale_reference}</a> to {sale.customer.name} for ₦{sale.final_price:,.2f}"})
-            payments = SupplierPayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('supplier')
+                user_name = sale.created_by.username if sale.created_by else 'a system user'
+                raw_activities.append({'timestamp': sale.sale_date, 'activity_type': 'New Sale', 'description': f"Sale <a href='{sale.get_absolute_url()}'>{sale.sale_reference}</a> to {sale.customer.name} for ₦{sale.final_price:,.2f} was created by <strong>{user_name}</strong>"})
+            payments = SupplierPayment.objects.filter(payment_date__gte=start_datetime, payment_date__lt=end_datetime).select_related('supplier')
             for p in payments:
-                raw_activities.append({'timestamp': p.created_at, 'activity_type': 'New Supplier Payment', 'description': f"Payment <a href='{reverse('payment_detail', args=[p.pk])}'>{p.payment_reference}</a> of ₦{p.amount_paid:,.2f} to {p.supplier.name}"})
-            deliveries = SupplierDelivery.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('payment__supplier')
+                user_name = p.created_by.username if p.created_by else 'a system user'
+                raw_activities.append({'timestamp': p.payment_date, 'activity_type': 'New Supplier Payment', 'description': f"Payment <a href='{reverse('payment_detail', args=[p.pk])}'>{p.payment_reference}</a> of ₦{p.amount_paid:,.2f} to {p.supplier.name} was created by <strong>{user_name}</strong>"})
+            deliveries = SupplierDelivery.objects.filter(delivery_date__gte=start_datetime, delivery_date__lt=end_datetime).select_related('payment__supplier')
             for d in deliveries:
-                raw_activities.append({'timestamp': d.created_at, 'activity_type': 'New Delivery', 'description': f"Delivery <a href='{d.get_absolute_url()}'>{d.delivery_reference}</a> received from {d.payment.supplier.name}"})
+                user_name = d.created_by.username if d.created_by else 'a system user'
+                raw_activities.append({'timestamp': d.delivery_date, 'activity_type': 'New Delivery', 'description': f"Delivery <a href='{d.get_absolute_url()}'>{d.delivery_reference}</a> received from {d.payment.supplier.name} was created by <strong>{user_name}</strong>"})
             deposits = Deposit.objects.filter(deposit_date__gte=start_datetime, deposit_date__lt=end_datetime).select_related('customer')
             for d in deposits:
-                raw_activities.append({'timestamp': d.deposit_date, 'activity_type': 'New Deposit', 'description': f"Deposit <a href='{d.get_absolute_url()}'>{d.deposit_reference}</a> of ₦{d.deposit_amount:,.2f} from {d.customer.name}"})
+                user_name = d.created_by.username if d.created_by else 'a system user'
+                raw_activities.append({'timestamp': d.deposit_date, 'activity_type': 'New Deposit', 'description': f"Deposit <a href='{d.get_absolute_url()}'>{d.deposit_reference}</a> of ₦{d.deposit_amount:,.2f} from {d.customer.name} was created by <strong>{user_name}</strong>"})
             withdrawals = Withdrawal.objects.filter(withdrawal_date__gte=start_datetime, withdrawal_date__lt=end_datetime).select_related('deposit__customer')
             for w in withdrawals:
-                raw_activities.append({'timestamp': w.withdrawal_date, 'activity_type': 'New Withdrawal', 'description': f"Withdrawal of ₦{w.withdrawal_amount:,.2f} from {w.deposit.customer.name}'s account (<a href='{w.get_absolute_url()}'>Details</a>)"})
-            loans = Loan.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('customer')
+                user_name = w.created_by.username if w.created_by else 'a system user'
+                raw_activities.append({'timestamp': w.withdrawal_date, 'activity_type': 'New Withdrawal', 'description': f"Withdrawal of ₦{w.withdrawal_amount:,.2f} from {w.deposit.customer.name}'s account (<a href='{w.get_absolute_url()}'>Details</a>) was created by <strong>{user_name}</strong>"})
+            loans = Loan.objects.filter(loan_date__gte=start_datetime, loan_date__lt=end_datetime).select_related('customer')
             for l in loans:
-                raw_activities.append({'timestamp': l.created_at, 'activity_type': 'New Loan', 'description': f"Loan <a href='{l.get_absolute_url()}'>{l.loan_reference}</a> of ₦{l.loan_amount:,.2f} issued to {l.customer.name}"})
-            repayments = LoanRepayment.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime).select_related('loan__customer')
+                user_name = l.created_by.username if l.created_by else 'a system user'
+                raw_activities.append({'timestamp': l.loan_date, 'activity_type': 'New Loan', 'description': f"Loan <a href='{l.get_absolute_url()}'>{l.loan_reference}</a> of ₦{l.loan_amount:,.2f} issued to {l.customer.name} was created by <strong>{user_name}</strong>"})
+            repayments = LoanRepayment.objects.filter(repayment_date__gte=start_datetime, repayment_date__lt=end_datetime).select_related('loan__customer')
             for r in repayments:
-                raw_activities.append({'timestamp': r.created_at, 'activity_type': 'New Loan Repayment', 'description': f"Repayment of ₦{r.repayment_amount:,.2f} for loan {r.loan.loan_reference} by {r.loan.customer.name} (<a href='{r.get_absolute_url()}'>Details</a>)"})
+                user_name = r.created_by.username if r.created_by else 'a system user'
+                raw_activities.append({'timestamp': r.repayment_date, 'activity_type': 'New Loan Repayment', 'description': f"Repayment of ₦{r.repayment_amount:,.2f} for loan {r.loan.loan_reference} by {r.loan.customer.name} (<a href='{r.get_absolute_url()}'>Details</a>) was created by <strong>{user_name}</strong>"})
             inv_trans = InventoryTransaction.objects.filter(transaction_date__gte=start_datetime, transaction_date__lt=end_datetime).select_related('motorcycle_model')
             for t in inv_trans:
-                raw_activities.append({'timestamp': t.transaction_date, 'activity_type': 'Inventory Update', 'description': f"{t.get_transaction_type_display()}: {t.quantity} units of {t.motorcycle_model}. Remarks: {t.remarks}"})
+                user_name = t.created_by.username if t.created_by else 'a system user'
+                raw_activities.append({'timestamp': t.transaction_date, 'activity_type': 'Inventory Update', 'description': f"{t.get_transaction_type_display()}: {t.quantity} units of {t.motorcycle_model}. Remarks: {t.remarks} was created by <strong>{user_name}</strong>"})
             motorcycles = Motorcycle.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
             for m in motorcycles:
-                raw_activities.append({'timestamp': m.created_at, 'activity_type': 'New Motorcycle Model', 'description': f"Model <a href='{m.get_absolute_url()}'>{m}</a> was added to the system."})
+                user_name = m.created_by.username if m.created_by else 'a system user'
+                raw_activities.append({'timestamp': m.created_at, 'activity_type': 'New Motorcycle Model', 'description': f"Model <a href='{m.get_absolute_url()}'>{m}</a> was added to the system. Created by <strong>{user_name}</strong>"})
             suppliers = Supplier.objects.filter(created_at__gte=start_datetime, created_at__lt=end_datetime)
             for s in suppliers:
-                raw_activities.append({'timestamp': s.created_at, 'activity_type': 'New Supplier', 'description': f"Supplier <a href='{reverse('supplier_detail', args=[s.pk])}'>{s.name}</a> was added."})
+                user_name = s.created_by.username if s.created_by else 'a system user'
+                raw_activities.append({'timestamp': s.created_at, 'activity_type': 'New Supplier', 'description': f"Supplier <a href='{reverse('supplier_detail', args=[s.pk])}'>{s.name}</a> was added. Created by <strong>{user_name}</strong>"})
             
             sorted_activities = sorted(raw_activities, key=itemgetter('timestamp'), reverse=True)
             paginator = Paginator(sorted_activities, self.paginate_by)

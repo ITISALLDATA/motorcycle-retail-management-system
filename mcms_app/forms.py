@@ -105,6 +105,9 @@ class SupplierPaymentForm(forms.ModelForm):
 
             if not self.instance.pk and date < today:
                 raise ValidationError("Payment date cannot be in the past for new payments.")
+            
+        if date and isinstance(date, datetime.datetime) and timezone.is_naive(date):
+            return timezone.make_aware(date, timezone.get_default_timezone())
         return date
         
     def clean(self):

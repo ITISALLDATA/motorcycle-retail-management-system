@@ -52,6 +52,16 @@
                                 <span class="detail-value">{{ customer.phone|default:"N/A" }}</span>
                             </div>
                         </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Created by</span>
+                                <span class="detail-value">{{ customer.created_by }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Updated by</span>
+                                <span class="detail-value">{{ customer.updated_by }}</span>
+                            </div>
+                        </div>
                         <div class="detail-item detail-item-full"> {# Address can take full width #}
                             <span class="detail-label">Address</span>
                             <span class="detail-value">{{ customer.address|default_if_none:"N/A"|linebreaksbr }}</span>

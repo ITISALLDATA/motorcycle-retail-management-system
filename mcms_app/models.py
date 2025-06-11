@@ -13,6 +13,8 @@ from django.core.validators import MinValueValidator
 from django.urls import reverse
 from django.utils.functional import cached_property
 import datetime
+from django.conf import settings
+
 
 
 
@@ -38,6 +40,21 @@ class Motorcycle(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
 
     class Meta:
         unique_together = ['name', 'brand']
@@ -110,6 +127,24 @@ class Customer(models.Model):
     lastname = models.CharField(max_length=50, blank=False)
     phone = models.CharField(max_length=50, blank=False)
     address = models.TextField(blank=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
     
     @property
     def name(self):
@@ -127,6 +162,22 @@ class Supplier(models.Model):
     address = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
     
     class Meta:
         ordering = ['name']
@@ -180,11 +231,26 @@ class SupplierPayment(models.Model):
             default=ACTIVE,
             db_index=True # Add db_index for better query performance on status
         )    
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
 
     class Meta:
-        ordering = ['-payment_date', '-created_at']
+        ordering = ['-payment_date']
 
     def __str__(self):
         formatted_amount = f"{self.amount_paid:,.2f}" 
@@ -374,7 +440,23 @@ class SupplierPaymentItem(models.Model):
         validators=[MinValueValidator(Decimal('0.01'))] # Ensures price is at least 0.01
     )
     remarks = models.TextField(blank=True)
-    
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_created',
+        editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     class Meta:
         unique_together = ['payment', 'motorcycle_model']
     
@@ -439,11 +521,26 @@ class SupplierDelivery(models.Model):
     delivery_date = models.DateField(default=timezone.now)
     remarks = models.TextField(blank=True)
     is_cancelled = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
 
     class Meta:
-        ordering = ['-delivery_date', '-created_at']
+        ordering = ['-delivery_date']
 
     def __str__(self):
         # Handle cases where delivery_reference might not be set yet (e.g., new unsaved object)
@@ -467,7 +564,8 @@ class SupplierDelivery(models.Model):
             # No need to check uniqueness here if `save` method does it right after generation.
             pass # Remove the old unique check if it was here.
 
-    def cancel_delivery(self): # This method is on SupplierDelivery
+
+    def cancel_delivery(self, user=None):
         if self.is_cancelled:
             return
 
@@ -478,23 +576,18 @@ class SupplierDelivery(models.Model):
                     InventoryTransaction.objects.create(
                         transaction_type='DELIVERY_REVERSAL',
                         motorcycle_model=delivery_item.motorcycle_model,
-                        quantity=-delivery_item.delivered_quantity, # Negative quantity
+                        quantity=-delivery_item.delivered_quantity,
                         reference_model='SupplierDelivery',
                         reference_id=self.id,
                         remarks=f"Reversal of delivery {self.delivery_reference}"
                     )
             
             self.is_cancelled = True
-            self.save(update_fields=['is_cancelled', 'updated_at']) # This save will trigger payment status update
+            if user:
+                self.updated_by = user  # Assign the user who cancelled
             
-            # Explicitly update payment status after delivery cancellation
-            # The save method of SupplierDelivery now handles this.
-            # if self.payment:
-            #    self.payment.update_completion_status(force_recalculate=True)
-
-
-        self.is_cancelled = True
-        self.save(update_fields=['is_cancelled']) # Only save the changed field for efficiency
+            # Save the delivery with all updated fields
+            self.save(update_fields=['is_cancelled', 'updated_at', 'updated_by'])
 
     def save(self, *args, **kwargs):
         if not self.delivery_reference:
@@ -536,6 +629,23 @@ class SupplierDeliveryItem(models.Model):
     )
     delivered_quantity = models.PositiveIntegerField()
     delivery_remarks = models.TextField(blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_created',
+        editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         unique_together = ['delivery', 'motorcycle_model']
@@ -649,6 +759,23 @@ class InventoryTransaction(models.Model):
         help_text="ID of the record that triggered this transaction"
     )
     remarks = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
     
     class Meta:
         ordering = ['-transaction_date']
@@ -687,6 +814,22 @@ class Inventory(models.Model):
     )
     current_quantity = models.IntegerField(default=0)
     last_updated = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
     
     class Meta:
         verbose_name_plural = "Inventories"
@@ -762,11 +905,26 @@ class Sale(models.Model):
     
     sale_reference = models.CharField(max_length=50, unique=True, blank=True, help_text="Auto-generated unique sale reference.")
     
-    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
 
     class Meta:
-        ordering = ['-sale_date', '-created_at']
+        ordering = ['-sale_date']
         verbose_name = "Sale Record"
         verbose_name_plural = "Sale Records"
 
@@ -836,6 +994,23 @@ class Deposit(models.Model):
         choices=DEPOSIT_STATUS_CHOICES, 
         default='active'
     )
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
 
     def __str__(self):
         ref = self.deposit_reference if self.deposit_reference else f"DEP-{self.id}"
@@ -963,101 +1138,21 @@ class Withdrawal(models.Model):
         choices=WITHDRAWAL_STATUS_CHOICES, 
         default='completed'
     )
-
-    def __str__(self):
-        ref = self.deposit.deposit_reference if self.deposit else "N/A"
-        return f"{ref} - {self.deposit.customer} - ₦{self.withdrawal_amount} on {self.withdrawal_date.strftime('%Y-%m-%d')}"
-        
-    def clean(self):
-        if self.withdrawal_amount is not None and self.withdrawal_amount <= 0:
-            raise ValidationError("Withdrawal amount must be greater than zero.")
-
-    def save(self, *args, **kwargs):
-        """Enhanced save method that triggers deposit status update"""
-        # Store the old values for comparison (in case of updates)
-        old_deposit_id = None
-        old_status = None
-        old_amount = None
-        
-        if self.pk:
-            try:
-                old_withdrawal = Withdrawal.objects.get(pk=self.pk)
-                old_deposit_id = old_withdrawal.deposit_id
-                old_status = old_withdrawal.withdrawal_status
-                old_amount = old_withdrawal.withdrawal_amount
-            except Withdrawal.DoesNotExist:
-                pass
-        
-        # Clear the deposit's withdrawal cache before saving
-        if self.deposit:
-            self.deposit.clear_withdrawal_cache()
-        
-        # Save the withdrawal
-        super().save(*args, **kwargs)
-        
-        # Update the current deposit status
-        if self.deposit:
-            self.deposit.update_status_based_on_withdrawals()
-        
-        # If deposit changed (rare case), update the old deposit too
-        if old_deposit_id and old_deposit_id != self.deposit_id:
-            try:
-                old_deposit = Deposit.objects.get(pk=old_deposit_id)
-                old_deposit.clear_withdrawal_cache()
-                old_deposit.update_status_based_on_withdrawals()
-            except Deposit.DoesNotExist:
-                pass
-
-    def delete(self, *args, **kwargs):
-        """Enhanced delete method that triggers deposit status update"""
-        deposit = self.deposit
-        
-        # Clear the deposit's withdrawal cache before deletion
-        if deposit:
-            deposit.clear_withdrawal_cache()
-            
-        super().delete(*args, **kwargs)
-        
-        # Update deposit status after deletion
-        if deposit:
-            deposit.update_status_based_on_withdrawals()
-
-    def get_absolute_url(self):
-        return reverse('withdrawal_detail', kwargs={'pk': self.pk})
-    
-    @classmethod
-    def get_customer_balance(cls, customer):
-        """Calculate current balance for a customer"""
-        from django.db.models import Sum
-        
-        total_deposits = Deposit.objects.filter(
-            customer=customer, 
-            deposit_status__in=['active', 'completed']
-        ).aggregate(total=Sum('deposit_amount'))['total'] or 0
-        
-        # Get withdrawals from all deposits of this customer
-        total_withdrawals = cls.objects.filter(
-            deposit__customer=customer, 
-            withdrawal_status='completed'
-        ).aggregate(total=Sum('withdrawal_amount'))['total'] or 0
-        
-        return total_deposits - total_withdrawals
-
-
-class Withdrawal(models.Model):
-    WITHDRAWAL_STATUS_CHOICES = [
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-    ]
-    deposit = models.ForeignKey(Deposit, on_delete=models.CASCADE)
-    sale = models.ForeignKey(Sale, on_delete=models.SET_NULL, null=True, blank=True, related_name='sale_withdrawal')
-    withdrawal_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=False)
-    withdrawal_date = models.DateTimeField(default=timezone.now)
-    remarks = models.CharField(max_length=250, null=True, blank=True)
-    withdrawal_status = models.CharField(
-        max_length=20, 
-        choices=WITHDRAWAL_STATUS_CHOICES, 
-        default='completed'
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_created',
+        editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
     )
 
     def __str__(self):
@@ -1070,28 +1165,19 @@ class Withdrawal(models.Model):
 
     def save(self, *args, **kwargs):
         """Enhanced save method that triggers deposit status update"""
-        # Store the old values for comparison (in case of updates)
         old_deposit_id = None
-        old_status = None
-        old_amount = None
-        
         if self.pk:
             try:
                 old_withdrawal = Withdrawal.objects.get(pk=self.pk)
                 old_deposit_id = old_withdrawal.deposit_id
-                old_status = old_withdrawal.withdrawal_status
-                old_amount = old_withdrawal.withdrawal_amount
             except Withdrawal.DoesNotExist:
                 pass
         
-        # Save the withdrawal
         super().save(*args, **kwargs)
         
-        # Update the current deposit status
         if self.deposit:
             self.deposit.update_status_based_on_withdrawals()
         
-        # If deposit changed (rare case), update the old deposit too
         if old_deposit_id and old_deposit_id != self.deposit_id:
             try:
                 old_deposit = Deposit.objects.get(pk=old_deposit_id)
@@ -1100,35 +1186,27 @@ class Withdrawal(models.Model):
                 pass
 
     def delete(self, *args, **kwargs):
-        """Enhanced delete method that triggers deposit status update"""
         deposit = self.deposit
         super().delete(*args, **kwargs)
-        
-        # Update deposit status after deletion
         if deposit:
             deposit.update_status_based_on_withdrawals()
 
-    def get_absolute_url(self): # New method
+    def get_absolute_url(self):
         return reverse('withdrawal_detail', kwargs={'pk': self.pk})
     
     @classmethod
     def get_customer_balance(cls, customer):
-        """Calculate current balance for a customer"""
-        from django.db.models import Sum
-        
         total_deposits = Deposit.objects.filter(
             customer=customer, 
-            deposit_status__in=['active', 'completed']  # Include completed deposits in balance
+            deposit_status__in=['active', 'completed']
         ).aggregate(total=Sum('deposit_amount'))['total'] or 0
         
-        # Get withdrawals from all deposits of this customer
         total_withdrawals = cls.objects.filter(
             deposit__customer=customer, 
             withdrawal_status='completed'
         ).aggregate(total=Sum('withdrawal_amount'))['total'] or 0
         
-        return total_deposits - total_withdrawals
- 
+        return total_deposits - total_withdrawals 
 
 class Loan(models.Model):
     LOAN_STATUS_CHOICES = [
@@ -1148,11 +1226,26 @@ class Loan(models.Model):
     loan_reference = models.CharField(max_length=100, unique=True, blank=True) # Generated in save
 
     # Add created_at and updated_at if not in a base model
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
 
     class Meta: # Add Meta if you want ordering
-        ordering = ['-loan_date', '-created_at']
+        ordering = ['-loan_date']
 
     def __str__(self): # Your existing __str__
         return f"Loan {self.loan_reference if self.loan_reference else self.id} - {self.customer.name} (Status: {self.get_loan_status_display()})"
@@ -1222,11 +1315,26 @@ class LoanRepayment(models.Model):
     # No status field currently, deletion is hard delete.
 
     # Add created_at and updated_at if not in a base model
-    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_by = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.SET_NULL, 
+    null=True, 
+    blank=True, 
+    related_name='%(class)s_created',
+    editable=False
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='%(class)s_updated'
+    )
+
 
     class Meta: # Add Meta if you want ordering
-        ordering = ['-repayment_date', '-created_at']
+        ordering = ['-repayment_date']
 
     def __str__(self): # Your existing __str__
         loan_ref = self.loan.loan_reference if self.loan else "N/A"

@@ -86,6 +86,18 @@
                                 {{ deposit.updated_at|date:"M d, Y H:i"|default:"N/A" }}
                             </span>
                         </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Created by</span>
+                            <span class="detail-value">
+                                {{ deposit.created_by }}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Updated by</span>
+                            <span class="detail-value">
+                                {{ deposit.updated_by }}
+                            </span>
+                        </div>
                     </div>
                     
                     {% if deposit.transaction_note %}

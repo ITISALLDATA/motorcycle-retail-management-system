@@ -72,6 +72,16 @@
                                 </span>
                             </div>
                         </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Created by</span>
+                                <span class="detail-value">{{ delivery.created_by }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Updated by</span>
+                                <span class="detail-value">{{delivery.updated_by|default:"N/A"}}</span>
+                            </div>
+                        </div>
                         <div class="detail-item detail-item-full">
                             <span class="detail-label">Remarks</span>
                             <span class="detail-value">{{ delivery.remarks|default_if_none:"N/A"|linebreaksbr }}</span>
@@ -79,9 +89,8 @@
                         <div class="detail-item detail-item-full">
                             <span class="detail-label">Timestamps</span>
                             <span class="detail-value text-muted" style="font-size: 0.8rem;">
-                                Recorded: {{ delivery.created_at|date:"M d, Y H:i"|default:"N/A" }}
-                                {% if delivery.updated_at != delivery.created_at %}
-                                    | Last Updated: {{ delivery.updated_at|date:"M d, Y H:i"|default:"N/A" }}
+                                {% if delivery.updated_at != delivery.delivery_date %}
+                                    Last Updated: {{ delivery.updated_at|date:"M d, Y H:i"|default:"N/A" }}
                                 {% endif %}
                             </span>
                         </div>

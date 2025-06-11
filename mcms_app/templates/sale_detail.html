@@ -93,6 +93,16 @@
                                 <span class="detail-value highlight-value">₦{{ sale.final_price|floatformat:2|intcomma }}</span>
                             </div>
                         </div>
+                        <div class="detail-group">
+                            <div class="detail-item">
+                                <span class="detail-label">Created by</span>
+                                <span class="detail-value">{{ sale.created_by }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Updated by</span>
+                                <span class="detail-value">{{ sale.updated_by}}</span>
+                            </div>
+                        </div>
                         <div class="detail-item detail-item-full">
                             <span class="detail-label">Remarks</span>
                             <span class="detail-value">{{ sale.remarks|default_if_none:"N/A"|linebreaksbr }}</span>
@@ -100,9 +110,8 @@
                         <div class="detail-item detail-item-full">
                             <span class="detail-label">Timestamps</span>
                             <span class="detail-value text-muted" style="font-size: 0.8rem;">
-                                Recorded: {{ sale.created_at|date:"M d, Y H:i"|default:"N/A" }}
-                                {% if sale.updated_at != sale.created_at %}
-                                    | Last Updated: {{ sale.updated_at|date:"M d, Y H:i"|default:"N/A" }}
+                                {% if sale.updated_at != sale.sale_date %}
+                                    Last Updated: {{ sale.updated_at|date:"M d, Y H:i"|default:"N/A" }}
                                 {% endif %}
                             </span>
                         </div>
